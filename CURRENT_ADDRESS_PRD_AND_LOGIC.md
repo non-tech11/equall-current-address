@@ -264,7 +264,8 @@ locality  landmark   verdict
 
 | ID | Field | Sev | Condition | Message |
 |---|---|---|---|---|
-| V-00 | any text | B | fails `/^[A-Za-z0-9\s,.\/#&()'-]*$/` | "Use English letters and numbers only" |
+| V-00 | any text | B | non-ASCII after normalisation (other script, emoji) | "Please type your address in English" |
+| V-00b | any text | B | symbol outside the permissive ASCII set | "Remove special symbols from this field" |
 | V-01 | pincode | B | empty | "Enter your 6-digit pincode" |
 | V-02 | pincode | B | fails `/^[1-9]\d{5}$/` | "Enter a valid 6-digit pincode" |
 | V-03 | pincode | B | master says not found | "We couldn't find this pincode — please check" |
@@ -289,7 +290,6 @@ locality  landmark   verdict
 | V-50 | landmark | B | empty **and** locality <3 | "Add a nearby landmark so we can find you" |
 | V-51 | landmark | B | non-empty and <5 chars | "Too short — mention a shop, temple, school or office" |
 | V-52 | landmark | B | >50 chars | "Keep this under 50 characters" |
-| W-50 | landmark | N | empty, locality present | "Couriers find addresses faster with a landmark" |
 | V-60 | homeType | B | unset | "Select your home type" |
 | V-61 | ownership | B | unset | "Select property ownership" |
 | W-70 | building/locality/landmark | N | equals the area value | "Same as your area — is this correct?" |
@@ -377,6 +377,7 @@ the focus order and the error ordering.
 | S-01 | all text | collapse whitespace runs to one space |
 | S-02 | all text | strip leading/trailing whitespace, commas, dots, hyphens |
 | S-03 | building, locality, area, landmark | remove `\b[1-9]\d{5}\b`, then re-run S-01/S-02 |
+| S-05 | all text | smart quotes/dashes (`’ “ ” – —`) → ASCII, before any rule runs |
 | S-04 | houseNo | S-01 + S-02 only — a stray pincode **blocks** (V-23) instead of being deleted |
 
 S-03 neutralises `WZ-476 SHAKURPUR VILLAGE Saraswati Vihar North West Delhi India 110034`; W-72
@@ -440,7 +441,7 @@ Landmark has no legacy home — send it as its own field or it is lost.
 | E-08 | Flat with no society name | V-30 blocks; escape is Independent house |
 | E-09 | Pincode pasted into Locality/Area/Landmark | Stripped (S-03) + W-72 |
 | E-10 | Pincode pasted into House number | Blocked (V-23), never auto-edited |
-| E-11 | Non-Latin script | V-00 blocks |
+| E-11 | Non-Latin script or emoji | V-00 blocks; punctuation never does |
 | E-12 | Autofill fills everything at once | Rules run at Continue; area accepted as typed |
 | E-13 | `Same as current` on Permanent address | Copies components; editable after toggling off |
 | E-14 | Score 3 with all-short values | Allowed by design — a real village address |
@@ -474,7 +475,9 @@ Landmark has no legacy home — send it as its own field or it is lost.
 | T-28 | houseNo `530041 Flat 2` | V-23 |
 | T-29 | pincode `53004` | V-02 |
 | T-31 | houseNo `303`, locality `Main`, area `CVR` | V-70 (score 2 — both under minimum) + W-44 + W-12 |
-| T-33 | locality in Devanagari | V-00 |
+| T-33 | locality in Devanagari, or emoji anywhere | V-00 |
+| T-35 | `H.No: 830` · `Plot 5 + 6` · `NEW_COLONY` · `Rao’s Nilayam` · `Sector-5 – Phase 2` | **none — all valid.** Smart `’` and `–` normalised to ASCII on blur (S-05) |
+| T-35 | `H.No: 830` · `Plot 5 + 6` · `Rao’s Nilayam` · `Sector-5 – Phase 2` | none — all valid, smart punctuation normalised |
 | T-34 | ownership unset | V-61 |
 
 ### Must warn only
@@ -483,7 +486,6 @@ Landmark has no legacy home — send it as its own field or it is lost.
 |---|---|---|
 | T-40 | area = city | W-10 |
 | T-41 | locality = area | W-70 |
-| T-43 | landmark empty, locality present | W-50 |
 | T-44 | locality `Naraina Village 110028` | W-72 + S-03 |
 | T-45 | houseNo `13-59/1/2, FF 101, 3rd Floor` | W-20 |
 

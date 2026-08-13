@@ -97,9 +97,13 @@ field only).
 
 | ID | Sev | Condition | Message |
 |---|---|---|---|
-| V-00 | B | value fails `/^[A-Za-z0-9\s,.\/#&()'-]*$/` | "Use English letters and numbers only" |
+| V-00 | B | contains a non-ASCII character after normalisation — Devanagari, Telugu, emoji | "Please type your address in English" |
+| V-00b | B | contains a symbol outside the permissive ASCII set | "Remove special symbols from this field" |
 
-Runs before every field-specific rule. Blocks emoji, Devanagari/Telugu script, and control
+Runs before every field-specific rule. Punctuation is deliberately permissive — `H.No: 830`,
+`Plot 5 + 6`, `NEW_COLONY`, `S/o Ramesh` and `Flat 501 "A" wing` are all valid. Smart quotes and
+dashes from mobile keyboards are normalised to ASCII first (S-05), never rejected. What remains
+blocked is another script or emoji, and control
 characters that break courier label printing.
 
 ### 4.2 Pincode
@@ -187,7 +191,6 @@ The street-word escape hatch exists so real values survive V-42: `Gali no 20`, `
 | V-50 | B | empty **and** locality < 3 chars | "Add a nearby landmark so we can find you" |
 | V-51 | B | non-empty and length < 5 | "Too short — mention a shop, temple, school or office" |
 | V-52 | B | length > 50 | "Keep this under 50 characters" |
-| W-50 | N | empty (with locality present) | "Couriers find addresses faster with a landmark" |
 
 ### 4.8 Selects
 
@@ -372,6 +375,7 @@ never left with a dead control and no explanation.
 | S-01 | all text fields | collapse runs of whitespace to one space |
 | S-02 | all text fields | strip leading/trailing whitespace, commas, dots, hyphens |
 | S-03 | building, locality, area, landmark | remove any `\b[1-9]\d{5}\b` (stray pincode), then re-run S-01/S-02 |
+| S-05 | all text | smart quotes/dashes (`’ “ ” – —`) → ASCII, before any rule runs |
 | S-04 | houseNo | S-01 + S-02 only — a stray pincode **blocks** via V-23 instead of being deleted |
 
 S-03 is what neutralises `WZ-476 SHAKURPUR VILLAGE Saraswati Vihar North West Delhi India 110034`:
@@ -471,7 +475,7 @@ Evaluated top to bottom, first match wins. Mirrors the `signal` column of the an
 | E-08 | Flat with no society name (small building) | V-30 blocks if home type = Flat. Escape: pick Independent house, or put the owner/building identifier in Apartment name |
 | E-09 | Pincode pasted into Locality/Area/Landmark | Silently stripped (S-03) + W-72 explains |
 | E-10 | Pincode pasted into House number | Blocked by V-23, never auto-edited (S-04) |
-| E-11 | Non-Latin script | V-00 blocks |
+| E-11 | Non-Latin script or emoji | V-00 blocks; punctuation never does |
 | E-12 | Autofill fills every field at once | All rules run at Continue; area accepted as typed |
 | E-13 | `Same as current` on Permanent address | Copies components; toggling off leaves values editable (FR-40/41) |
 | E-14 | Score 3 but all short values | Allowed by design — `9-208-1` + `Bahadurpet` + landmark is a real, deliverable address |
@@ -512,7 +516,8 @@ Drawn from real rows in the `1_complete` bucket, re-expressed as components. `�
 | T-30 | pincode `999999` (master says no) | V-03 | "We couldn't find this pincode — please check" |
 | T-31 | houseNo + area only, both filled | V-70 (score 2) | "Your address needs more detail…" |
 | T-32 | landmark `Near` (4 chars), locality empty | V-51 | "Too short — mention a shop, temple, school or office" |
-| T-33 | locality `विनोद नगर` | V-00 | "Use English letters and numbers only" |
+| T-33 | locality `विनोद नगर` | V-00 | "Please type your address in English" |
+| T-35 | houseNo `H.No: 830`, locality `Sector-5 – Phase 2`, building `Rao’s Nilayam` | — | all valid; smart `–` and `’` normalised to ASCII on blur |
 | T-34 | ownership unset | V-61 | "Select property ownership" |
 
 ### Must warn, not block
@@ -521,7 +526,6 @@ Drawn from real rows in the `1_complete` bucket, re-expressed as components. `�
 |---|---|---|---|
 | T-40 | area = city (`Visakhapatnam`) | W-10 | black hint, submits |
 | T-41 | locality `Jayanthi embearled`, area `Jayanthi embearled` | W-70 | black hint, submits |
-| T-43 | landmark empty, locality present | W-50 | black hint, submits |
 | T-44 | locality `Naraina Village 110028` | W-72 + S-03 | pincode stripped on blur, hint shown, submits |
 | T-45 | houseNo `13-59/1/2, FF 101, 3rd Floor` (28 chars) | W-20 | black hint, submits |
 

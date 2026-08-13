@@ -166,6 +166,8 @@ export default function AddressForm({
     setTouched((t) => ({ ...t, [name]: true }));
     if (TEXT_FIELDS.includes(name)) {
       setForm((f) => {
+        // sanitize() also normalises smart quotes and dashes to ASCII, so a
+        // mobile keyboard's ’ or – never reads as an invalid character.
         const cleaned = name === 'houseNo' ? sanitize(f[name]) : stripPincode(f[name]);
         return cleaned === f[name] ? f : { ...f, [name]: cleaned };
       });

@@ -48,7 +48,33 @@ const SCORED_FIELDS = Object.keys(SCORE_MIN);
 /** Minimum components required to submit. */
 export const MIN_SCORE = 3;
 
-const ALLOWED_RE = /^[A-Za-z0-9\s,.\/#&()'-]*$/;
+/**
+ * Punctuation people actually type in Indian addresses: `H.No: 830`,
+ * `Plot 5 + 6`, `NEW_COLONY`, `Flat 501 "A" wing`, `S/o`, `No.4-A`.
+ * The character rule exists to stop non-Latin script reaching courier label
+ * printing — not to police punctuation, so this stays permissive.
+ */
+const ALLOWED_RE = /^[A-Za-z0-9\s,.:;'"|/\\#&()\[\]{}<>+*_@%!?=~^$-]*$/;
+
+/**
+ * Anything left outside ASCII after normalisation (S-05) is a non-Latin
+ * script — Devanagari, Telugu, Tamil, emoji. That is what actually breaks the
+ * label, and it gets its own clearer message.
+ */
+const NON_ASCII_RE = /[^\x20-\x7E]/;
+
+/** Smart punctuation → ASCII. Mobile keyboards substitute these silently. */
+const SMART_MAP = [
+  [/[‘’‚‛′]/g, "'"],
+  [/[“”„‟″]/g, '"'],
+  [/[‐‑‒–—―−]/g, '-'],
+  [/[  -​  　]/g, ' '],
+  [/[…]/g, '...'],
+];
+
+/** Replace smart punctuation with its ASCII equivalent. */
+export const normalizePunctuation = (s = '') =>
+  SMART_MAP.reduce((acc, [re, to]) => acc.replace(re, to), String(s));
 const PIN_RE = /^[1-9]\d{5}$/;
 const PIN_IN_TEXT_RE = /\b[1-9]\d{5}\b/;
 const DIGITS_ONLY_RE = /^[\d\W_]+$/;
@@ -63,9 +89,13 @@ const LANDMARK_PREFIX_RE = /^(near|behind|beside|opp|opposite|next|in front|fron
 export const norm = (s = '') =>
   String(s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
-/** Trim, collapse inner whitespace, drop leading/trailing separators. Run on blur. */
+/** Normalise punctuation, collapse whitespace, drop edge separators. Run on blur. */
 export const sanitize = (s = '') =>
-  String(s).replace(/\s+/g, ' ').replace(/^[\s,.\-]+/, '').replace(/[\s,.\-]+$/, '').trim();
+  normalizePunctuation(s)
+    .replace(/\s+/g, ' ')
+    .replace(/^[\s,.\-]+/, '')
+    .replace(/[\s,.\-]+$/, '')
+    .trim();
 
 /** Strip a 6-digit pincode accidentally pasted into a text field. */
 export const stripPincode = (s = '') => sanitize(String(s).replace(PIN_IN_TEXT_RE, ''));
@@ -119,9 +149,12 @@ export function strengthLabel(score) {
  */
 export function validateField(name, form, ctx = {}) {
   const raw = String(form[name] ?? '');
-  const v = raw.trim();
+  const v = normalizePunctuation(raw).trim();
 
-  if (v && !ALLOWED_RE.test(v)) return 'Use English letters and numbers only';
+  // Smart quotes and dashes are normalised, not rejected (S-05). What is left
+  // outside ASCII is another script, and that is the only thing worth blocking.
+  if (v && NON_ASCII_RE.test(v)) return 'Please type your address in English';
+  if (v && !ALLOWED_RE.test(v)) return 'Remove special symbols from this field';
 
   switch (name) {
     case 'pincode': {
@@ -214,10 +247,6 @@ export function collectWarnings(form, ctx = {}) {
 
   if (String(form.houseNo || '').trim().length > 25) {
     out.push({ field: 'houseNo', text: 'Long house number — the apartment name goes in the next field' });
-  }
-
-  if (!String(form.landmark || '').trim()) {
-    out.push({ field: 'landmark', text: 'Couriers find addresses faster with a landmark' });
   }
 
   // Present but too short to count toward the score — say so at the field,

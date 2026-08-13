@@ -104,8 +104,7 @@ A vague address cannot reach 3 without supplying real detail.
 | Locality | digits-only with no street word (`gali`, `road`, `sector`, `colony`, `nagar`, `cross` …) | Blocking | "Enter a street or colony name, not only numbers" |
 | Landmark | required when Locality empty | Blocking | "Add a nearby landmark so we can find you" |
 | Landmark | present but <5 chars | Blocking | "Too short — mention a shop, temple, school or office" |
-| Landmark | empty | Non-blocking | "Couriers find addresses faster with a landmark" |
-| Any text field | characters outside `A–Z a–z 0–9 space , . / # & ( ) ' -` | Blocking | "Use English letters and numbers only" |
+| Any text field | non-ASCII after normalisation (other script, emoji) | Blocking | "Please type your address in English" |
 | Any text field | contains a 6-digit pincode | Non-blocking, auto-stripped on blur | "Pincode removed — it is already captured above" |
 | Apartment name / Locality / Landmark | equals the Area value | Non-blocking | "Same as your area — is this correct?" |
 | Whole form | score < 3 | Blocking | "Your address needs more detail — add street, area or a landmark" |
