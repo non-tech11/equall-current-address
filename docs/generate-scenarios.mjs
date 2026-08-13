@@ -229,7 +229,7 @@ BLOCKS.forEach(([name, f, ctx], i) => {
 p('');
 p('Screen behaviour is identical across all of them: red text under each failing field,');
 p('a red hint above the CTA, the CTA muted (still tappable — tapping re-scrolls to the');
-p('first failing field), the strength meter forced red by S-01, and **no top-of-page');
+p('first failing field), the strength meter forced red by M-01, and **no top-of-page');
 p('summary banner**.');
 p('');
 p('**One case differs — B13.** The coverage gate fails while every individual field is');
@@ -282,7 +282,7 @@ p('## 5. System scenarios (not rule-driven)');
 p('');
 p('| # | Scenario | What happens |');
 p('|---|---|---|');
-p('| S1 | Customer lands on the page | Meter is grey and neutral: "Fill in your address details to see how complete it is". No red anywhere (S-02) |');
+p('| S1 | Customer lands on the page | Meter is grey and neutral: "Fill in your address details to see how complete it is". No red anywhere (M-02) |');
 p('| S2 | Typing, not yet left the field | No validation, no error. Meter still updates live |');
 p('| S3 | Pincode reaches 6 digits | 350ms debounce, shimmer on the city/state chip, then `✓ City, State` |');
 p('| S4 | Pincode typed digit by digit | At most one network request — earlier ones aborted (P-01) |');

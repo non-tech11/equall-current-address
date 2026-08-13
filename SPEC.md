@@ -70,7 +70,7 @@ locality 5, area 4, landmark 5 characters).
 
 | Score | Meter | Message | Behaviour |
 |---|---|---|---|
-| 0 · nothing typed yet | ○○○○○ grey | "Fill in your address details to see how complete it is" | — (S-02) |
+| 0 · nothing typed yet | ○○○○○ grey | "Fill in your address details to see how complete it is" | — (M-02) |
 | 0–1 | ●○○○○ red | "Too little detail" | Blocking |
 | 2 | ●●○○○ red | "Needs more detail" | Blocking |
 | 3 | ●●●○○ amber | "Okay — a landmark makes you easier to find" | Passes |

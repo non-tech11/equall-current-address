@@ -188,7 +188,7 @@ Each under-length field shows a black hint, so the meter is never mysterious:
 
 | Score | Meter | Copy | Submit |
 |---|---|---|---|
-| 0 · nothing typed yet | ○○○○○ grey | "Fill in your address details to see how complete it is" | — (S-02) |
+| 0 · nothing typed yet | ○○○○○ grey | "Fill in your address details to see how complete it is" | — (M-02) |
 | 0–1 | ●○○○○ red | "Too little detail" | blocked (V-70) |
 | 2 | ●●○○○ red | "Needs more detail" | blocked (V-70) |
 | 3 | ●●●○○ amber | "Okay — a landmark makes you easier to find" | allowed |
@@ -202,11 +202,11 @@ detail out of people; red while typing pushes them out of the funnel.
 
 | ID | Rule |
 |---|---|
-| S-01 | While any blocking error is *visible* (a touched field, or all fields once Continue was pressed), the meter renders red with "Incomplete — complete the fields marked in red", regardless of score. Dot count still follows the score |
-| S-03 | **Form-level-only block.** When the coverage gate fails but no field has an error, the CTA hint carries `errors._form` and the meter keeps its shorter score label — the same sentence never prints twice |
-| S-02 | **Idle state.** Score 0 with nothing flagged yet — i.e. the customer has just landed — renders grey and neutral: "Fill in your address details to see how complete it is". Never red on arrival |
+| M-01 | While any blocking error is *visible* (a touched field, or all fields once Continue was pressed), the meter renders red with "Incomplete — complete the fields marked in red", regardless of score. Dot count still follows the score |
+| M-03 | **Form-level-only block.** When the coverage gate fails but no field has an error, the CTA hint carries `errors._form` and the meter keeps its shorter score label — the same sentence never prints twice |
+| M-02 | **Idle state.** Score 0 with nothing flagged yet — i.e. the customer has just landed — renders grey and neutral: "Fill in your address details to see how complete it is". Never red on arrival |
 
-Without S-01 the meter contradicts itself: apartment name + locality + area with **no house number**
+Without M-01 the meter contradicts itself: apartment name + locality + area with **no house number**
 scores 3 and would read as fine directly above a red House-number field.
 
 ### B1.6 Why the threshold is 3
@@ -358,7 +358,7 @@ on Continue:
       red error on every failing field
       "Complete the fields marked in red to continue" above the CTA
       CTA → blocked state (muted, aria-disabled, still tappable)
-      meter → blocked state (S-01)
+      meter → blocked state (M-01)
       scroll to + focus the first blocking field in FIELD_ORDER
       emit address_submit_blocked { fields, score, firstErrorField }
   else:

@@ -256,7 +256,7 @@ DELHI – 110018
 
 Screen behaviour is identical across all of them: red text under each failing field,
 a red hint above the CTA, the CTA muted (still tappable — tapping re-scrolls to the
-first failing field), the strength meter forced red by S-01, and **no top-of-page
+first failing field), the strength meter forced red by M-01, and **no top-of-page
 summary banner**.
 
 **One case differs — B13.** The coverage gate fails while every individual field is
@@ -302,7 +302,7 @@ are normalised to ASCII on blur (S-05).
 
 | # | Scenario | What happens |
 |---|---|---|
-| S1 | Customer lands on the page | Meter is grey and neutral: "Fill in your address details to see how complete it is". No red anywhere (S-02) |
+| S1 | Customer lands on the page | Meter is grey and neutral: "Fill in your address details to see how complete it is". No red anywhere (M-02) |
 | S2 | Typing, not yet left the field | No validation, no error. Meter still updates live |
 | S3 | Pincode reaches 6 digits | 350ms debounce, shimmer on the city/state chip, then `✓ City, State` |
 | S4 | Pincode typed digit by digit | At most one network request — earlier ones aborted (P-01) |
