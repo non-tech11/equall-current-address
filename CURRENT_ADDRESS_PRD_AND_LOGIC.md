@@ -203,6 +203,7 @@ detail out of people; red while typing pushes them out of the funnel.
 | ID | Rule |
 |---|---|
 | S-01 | While any blocking error is *visible* (a touched field, or all fields once Continue was pressed), the meter renders red with "Incomplete — complete the fields marked in red", regardless of score. Dot count still follows the score |
+| S-03 | **Form-level-only block.** When the coverage gate fails but no field has an error, the CTA hint carries `errors._form` and the meter keeps its shorter score label — the same sentence never prints twice |
 | S-02 | **Idle state.** Score 0 with nothing flagged yet — i.e. the customer has just landed — renders grey and neutral: "Fill in your address details to see how complete it is". Never red on arrival |
 
 Without S-01 the meter contradicts itself: apartment name + locality + area with **no house number**

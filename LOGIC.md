@@ -265,6 +265,7 @@ proceed is coverage, and W-44 says where to add detail.
 | ID | Rule |
 |---|---|
 | S-01 | While any blocking error is **visible** (a touched field, or every field once Continue has been pressed), the meter renders red with "Incomplete — complete the fields marked in red", whatever the score says |
+| S-03 | **Form-level-only block.** When the coverage gate fails but no field has an error, the CTA hint carries `errors._form` and the meter keeps its shorter score label — the same sentence never prints twice |
 | S-02 | **Idle state.** Score 0 with nothing flagged yet (page just loaded) renders grey and neutral: "Fill in your address details to see how complete it is". No red on arrival |
 
 S-02 exists because score 0 otherwise maps to "Too little detail" — greeting a customer with a red

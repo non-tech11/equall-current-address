@@ -8,7 +8,7 @@ import { strengthLabel } from './addressValidation';
  * mandatory field is still empty (apartment name + locality + area, no house
  * number) — showing "Okay" there would contradict the red field below it.
  */
-export default function AddressStrength({ score, total = 5, blocked = false }) {
+export default function AddressStrength({ score, total = 5, blocked = false, blockedText }) {
   const base = strengthLabel(score);
 
   // Nothing entered and nothing flagged yet: stay neutral. Greeting a customer
@@ -20,7 +20,7 @@ export default function AddressStrength({ score, total = 5, blocked = false }) {
   const text = idle
     ? 'Fill in your address details to see how complete it is'
     : blocked
-      ? 'Incomplete — complete the fields marked in red'
+      ? blockedText || 'Incomplete — complete the fields marked in red'
       : base.text;
 
   return (

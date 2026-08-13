@@ -207,7 +207,21 @@ export default function AddressForm({
 
   // The meter turns red as soon as a blocking error is *visible* to the
   // customer — touched fields, or everything once Continue has been pressed.
-  const blocked = FIELD_ORDER.some((f) => shown(f)) || Boolean(attempted && errors._form);
+  const fieldErrorsVisible = FIELD_ORDER.some((f) => shown(f));
+  const formErrorVisible = Boolean(attempted && errors._form);
+  const blocked = fieldErrorsVisible || formErrorVisible;
+
+  // The coverage gate can fail while every individual field is valid (score 2
+  // from short-but-legal values). Then there is nothing red to point at, so the
+  // CTA carries the form-level reason instead — otherwise it blocks with no
+  // stated cause. The meter keeps its own shorter label so the same sentence
+  // never prints twice.
+  const blockedReason = fieldErrorsVisible
+    ? 'Complete the fields marked in red to continue'
+    : errors._form;
+  const meterBlockedText = fieldErrorsVisible
+    ? 'Incomplete — complete the fields marked in red'
+    : undefined;
 
   return (
     <div className="eq-screen">
@@ -495,7 +509,7 @@ export default function AddressForm({
             </div>
           </Field>
 
-          <AddressStrength score={score} blocked={blocked} />
+          <AddressStrength score={score} blocked={blocked} blockedText={meterBlockedText} />
         </form>
       </div>
 
@@ -503,9 +517,9 @@ export default function AddressForm({
           The button stays clickable so tapping it re-scrolls to the offending
           field instead of leaving the customer with a dead control. */}
       <div className="eq-footer">
-        {attempted && !ok && (
+        {attempted && !ok && blockedReason && (
           <p className="eq-footer__hint" role="alert">
-            Complete the fields marked in red to continue
+            {blockedReason}
           </p>
         )}
         <button

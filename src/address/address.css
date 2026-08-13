@@ -73,7 +73,8 @@
 /* ---- page head -------------------------------------------------------- */
 .eq-body {
   flex: 1;
-  padding: 4px 16px 104px;
+  /* clears the sticky footer at its tallest — CTA + blocked hint */
+  padding: 4px 16px 150px;
 }
 
 .eq-crumb {
@@ -414,11 +415,14 @@
 .eq-strength--good .eq-strength__text { color: var(--eq-ok); }
 
 /* ---- footer / buttons ------------------------------------------------- */
+/* Opaque, not a fade: content scrolling underneath must never show through
+   and collide with the CTA or its hint. */
 .eq-footer {
   position: sticky;
   bottom: 0;
   padding: 12px 16px 18px;
-  background: linear-gradient(180deg, rgba(247, 246, 253, 0) 0%, var(--eq-bg) 42%);
+  background: var(--eq-bg);
+  box-shadow: 0 -8px 16px -8px rgba(22, 22, 29, 0.12);
 }
 
 .eq-btn {

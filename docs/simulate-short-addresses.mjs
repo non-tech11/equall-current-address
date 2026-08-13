@@ -11,7 +11,7 @@ import {
 } from '/Users/User/equall-address-form/src/address/addressValidation.js';
 
 // id, line_one, line_two, city, state, pincode, word_count, residence
-const ROWS = [
+export const ROWS = [
   [10305, '9-208-1 bahadurpet', 'Bahadurpet', 'Tirupati', 'ANDHRA PRADESH', '517644', 3, 'SELF_OWNED'],
   [19008, '8-119  RAVINAGAR NAIDUTHOTA', 'Vepagunta VISAKHAPATNAM', 'VISAKHAPATANAM', 'ANDHRA PRADESH', '530047', 5, 'SELF_OWNED'],
   [23986, '222-54-678', 'Chakali veedhi naidupeta', 'SPSR NELLORE', 'ANDHRA PRADESH', '524126', 4, 'RENTED'],
@@ -87,7 +87,7 @@ function splitLineOne(l1) {
 }
 
 /** Distribute line_two (and line_one's remainder) into locality / area / landmark. */
-function mapRow(row) {
+export function mapRow(row) {
   const [, l1, l2] = row;
   const [houseNo, rest1] = splitLineOne(l1);
 
@@ -125,7 +125,7 @@ function mapRow(row) {
 }
 
 /* ---- old rules, for the before/after column ---------------------------- */
-function oldVerdict(l1, l2, wc) {
+export function oldVerdict(l1, l2, wc) {
   const combined = `${l1} ${l2}`.trim();
   if (combined.length < 20) return 'BLOCKED (<20 chars)';
   if (wc < 5) return 'prompt (<5 words)';
@@ -133,6 +133,8 @@ function oldVerdict(l1, l2, wc) {
 }
 
 /* ---- run --------------------------------------------------------------- */
+if (process.argv[1] && process.argv[1].endsWith('simulate-short-addresses.mjs')) {
+
 const out = [];
 let pass = 0;
 let block = 0;
@@ -202,3 +204,4 @@ console.log('warning field frequency:', JSON.stringify(warnHits, null, 1));
 const dist = {};
 out.forEach((r) => (dist[r.score] = (dist[r.score] || 0) + 1));
 console.log('score distribution:', JSON.stringify(dist));
+}
