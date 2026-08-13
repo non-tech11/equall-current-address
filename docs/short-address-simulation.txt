@@ -1,0 +1,64 @@
+rows simulated: 41   pass: 21   block: 20
+
+id	old verdict		houseNo	building	locality	area	landmark	score	signal	new result
+10305 | prompt (<5 words) | 9-208-1 | bahadurpet | — | Bahadurpet | — | 3 | slash | BLOCK: locality, landmark | Enter street / gali / colony — or add a landmark instead
+19008 | passed | 8-119 | RAVINAGAR NAIDUTHOTA | — | Vepagunta VISAKHAPATNAM | — | 3 | slash | BLOCK: locality, landmark | Enter street / gali / colony — or add a landmark instead
+23986 | prompt (<5 words) | 222-54-678 | — | Chakali veedhi naidupeta | — | — | 2 | slash | BLOCK: area, _form | Enter your area or village
+24650 | passed | 2-137 | l | — | Pedda Pada Khana | — | 2 | slash | BLOCK: locality, landmark, _form | Enter street / gali / colony — or add a landmark instead
+31668 | prompt (<5 words) | 21-101 | — | lane 9 | Kakaninagar | — | 3 | slash | PASS | 
+40090 | passed | 3/92-1 | Chinthalapalli village | — | Chigicherla post | — | 3 | slash | BLOCK: locality, landmark | Enter street / gali / colony — or add a landmark instead
+50417 | prompt (<5 words) | 5-32 | — | Bc colony | Muthukur | — | 3 | slash | PASS | 
+50464 | passed | 25-17-398 | Guntur | 6/4 srinivasarao thota | — | — | 3 | slash | BLOCK: area | Enter your area or village
+52918 | passed | 11-4-6 | — | Bank road | Appikonda street | — | 3 | slash | PASS | 
+53845 | passed | 55-16-8 | Lig 82 | Hb colony | — | — | 3 | slash | BLOCK: area | Enter your area or village
+57319 | passed | S1 | Jayanthi embearled | — | Jayanthi embearled | — | 3 | alnum | BLOCK: locality, landmark | Enter street / gali / colony — or add a landmark instead
+64486 | passed | 23/450/1 | — | Arigelavari street | Fathekan peta | — | 3 | slash | PASS | 
+64625 | prompt (<5 words) | 5-136 | Saluchintala | — | Saluchintala | — | 3 | slash | BLOCK: locality, landmark | Enter street / gali / colony — or add a landmark instead
+72246 | passed | D. No 28-156 | — | Kapu street | — | — | 2 | keyword | BLOCK: area, _form | Enter your area or village
+83275 | prompt (<5 words) | 1-259 | — | ramalayam st | Kalivelapalem | — | 3 | slash | PASS | 
+94652 | prompt (<5 words) | Flat no-409 | — | — | Atchuthapuram | — | 2 | keyword | BLOCK: building, locality, landmark, _form | Enter the apartment or building name
+96649 | passed | 2-84 | — | Bc colony | Jalakanur village | — | 3 | slash | PASS | 
+96679 | passed | 3-34/A | lokamudi | Eluru road center | — | — | 3 | slash | BLOCK: area | Enter your area or village
+97033 | prompt (<5 words) | 76-97-270-18 | — | Weeker Section Colony | — | — | 2 | slash | BLOCK: area, _form | Enter your area or village
+98189 | prompt (<5 words) | Door no 1-116/3 | — | — | Pedagummuluru | — | 2 | keyword | BLOCK: building, locality, landmark, _form | Enter the apartment or building name
+99610 | prompt (<5 words) | 3-4-259 3rd | — | street | Rajugopalpuram | — | 3 | slash | PASS | 
+99615 | passed | Flat no 102 | — | — | M s ramayya | — | 2 | keyword | BLOCK: building, locality, landmark, _form | Enter the apartment or building name
+99744 | prompt (<5 words) | 15-63 | — | kothavuru colony | Aganampudi | — | 3 | slash | PASS | 
+26836 | prompt (<5 words) | B-5/246-247 | — | Sec-3 Rohini | — | — | 2 | slash | BLOCK: area, _form | Enter your area or village
+20433 | passed | Rz-25A | — | gali no11B | Durga park | — | 3 | alnum | PASS | 
+63391 | passed | 9/2784 | — | street no 2 | Chanderpuri | — | 3 | slash | PASS | 
+67843 | passed | E-3/328 | — | Gali No7 | Sonia Vihar | — | 3 | slash | PASS | 
+58518 | passed | H-754 | Flat C3 | Palam Extension | — | — | 3 | alnum | BLOCK: area | Enter your area or village
+75900 | prompt (<5 words) | G-29/95 | — | SECTOR 3 | ROHINI | — | 3 | slash | PASS | 
+76750 | passed | 45/11 | — | Ground floor | Ashok Nagar | — | 3 | slash | PASS | 
+75633 | passed | 434/12 | — | Lakhpat Colony | Meethapur Badarpur | — | 3 | slash | PASS | 
+61075 | passed | G19 1st | — | floor | Vijay chowk | — | 3 | alnum | PASS | 
+65419 | prompt (<5 words) | House L-20 | — | Shastri Nagar | — | — | 2 | keyword | BLOCK: area, _form | Enter your area or village
+66069 | passed | RZI-47 | Tirath Niwas | — | West Sagarpur | — | 3 | alnum | BLOCK: locality, landmark | Enter street / gali / colony — or add a landmark instead
+72123 | passed | B 166 | — | GOPAL NAGAR | NAJAFGARH | — | 3 | alnum | PASS | 
+72166 | passed | C-19 | — | G Railway Colony | Jangpura | — | 3 | alnum | PASS | 
+93116 | passed | E 102 | — | Mansarover Garden | Mansarover | — | 3 | alnum | PASS | 
+74541 | passed | C94 | — | ganesh nagar | Ganesh nagar | — | 3 | alnum | PASS | 
+84598 | passed | D13 | — | kiran garden | Uttam nagar | — | 3 | alnum | PASS | 
+92483 | passed | House no 577 | — | ambedkar marg | — | — | 2 | keyword | BLOCK: area, _form | Enter your area or village
+68412 | passed | F-13/2 | — | Krishna Nagar | Krishna Nagar | — | 3 | slash | PASS | 
+
+old rules on these 41 rows:
+  combined <20 chars  → BLOCKED: 0 — none in this bucket
+  <5 words            → prompt : 14
+  combined length: min 23, median 30, max 51
+
+fields the customer must add: none 21, one 17, two+ 3
+
+blocking rule frequency: {
+ "locality": 10,
+ "landmark": 10,
+ "area": 10,
+ "_form": 10,
+ "building": 3
+}
+warning field frequency: {
+ "building": 4,
+ "locality": 2
+}
+score distribution: {"2":10,"3":31}

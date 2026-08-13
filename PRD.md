@@ -36,11 +36,11 @@ signal, no action*):
 
 | line_one | line_two | words | chars | Existing rule outcome |
 |---|---|---|---|---|
-| `2-137 l` | `Pedda Pada Khana` | 5 | 23 | **Blocked** by "<20 characters" |
-| `222-54-678` | `Chakali veedhi naidupeta` | 4 | 34 | "Looks incomplete" prompt |
-| `5-136, Saluchintala` | `Saluchintala` | 3 | 31 | "Looks incomplete" prompt |
-| `Flat no-409` | `Atchuthapuram` | 3 | 24 | "Looks incomplete" prompt |
-| `B-5/246-247` | `Sec-3 Rohini` | 3 | 23 | "Looks incomplete" prompt |
+| `2-137 l` | `Pedda Pada Khana` | 5 | 23 | passes — sits 3 characters above the blocking threshold |
+| `222-54-678` | `Chakali veedhi naidupeta` | 4 | 35 | "Looks incomplete" prompt |
+| `5-136, Saluchintala` | `Saluchintala` | 3 | 32 | "Looks incomplete" prompt |
+| `Flat no-409` | `Atchuthapuram` | 3 | 25 | "Looks incomplete" prompt |
+| `B-5/246-247` | `Sec-3 Rohini` | 3 | 24 | "Looks incomplete" prompt |
 
 Andhra Pradesh door-number addresses are short **and** complete. Delhi addresses (gali, block,
 floor) are long. Length measures *region*, not *quality*.
@@ -300,9 +300,9 @@ Rules being retired, verbatim from the validation sheet:
 
 | Existing rule | Type | Disposition |
 |---|---|---|
-| Line 1&2 combined `<20 characters` | Blocking | **Removed** — blocks `2-137 l` / `Pedda Pada Khana` |
+| Line 1&2 combined `<20 characters` | Blocking | **Removed** — threshold sits only 3 characters below the shortest real address in the complete bucket (`2-137 l` / `Pedda Pada Khana`, 23 chars) |
 | Line 1&2 combined `<5 words` | Non-blocking | **Removed** — fires on 3-word complete AP addresses |
-| Line 1 `Min 10` characters | Mandatory | **Removed** — house no. field min is 1 char (`2-137 l` is valid) |
+| Line 1 `Min 10` characters | Mandatory | **Removed** — house no. field min is 2 chars (`2-137 l` is valid) |
 | Line 1 no-digit → prompt | Non-blocking | **Promoted to blocking** on the house-number field |
 | Landmark optional, max-length only | Non-blocking | **Now conditionally mandatory** when Locality is empty |
 | Allowed chars, only-numbers-not-allowed | Blocking | **Retained**, applied per component |

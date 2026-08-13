@@ -17,10 +17,10 @@ already rates *strong signal, no action needed*):
 
 | line_one | line_two | words | chars | Current rule |
 |---|---|---|---|---|
-| `2-137 l` | `Pedda Pada Khana` | 5 | 23 | **blocked** (<20 chars) |
-| `222-54-678` | `Chakali veedhi naidupeta` | 4 | 34 | "looks incomplete" |
-| `5-136, Saluchintala` | `Saluchintala` | 3 | 31 | "looks incomplete" |
-| `Flat no-409` | `Atchuthapuram` | 3 | 24 | "looks incomplete" |
+| `2-137 l` | `Pedda Pada Khana` | 5 | 23 | passes — 3 characters above the blocking threshold |
+| `222-54-678` | `Chakali veedhi naidupeta` | 4 | 35 | "looks incomplete" |
+| `5-136, Saluchintala` | `Saluchintala` | 3 | 32 | "looks incomplete" |
+| `Flat no-409` | `Atchuthapuram` | 3 | 25 | "looks incomplete" |
 
 **It passes junk.** Same bucket:
 

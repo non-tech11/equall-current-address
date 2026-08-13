@@ -13,11 +13,11 @@ action = None*, i.e. addresses the system considers good).
 
 | line_one | line_two | words | combined chars | current rule verdict |
 |---|---|---|---|---|
-| `222-54-678` | `Chakali veedhi naidupeta` | 4 | 34 | non-blocking prompt fires |
-| `2-137 l` | `Pedda Pada Khana` | 5 | 23 | **blocked** (<20 chars per line intent) |
-| `5-136, Saluchintala` | `Saluchintala` | 3 | 31 | prompt fires |
-| `Flat no-409` | `Atchuthapuram` | 3 | 24 | prompt fires |
-| `B-5/246-247` | `Sec-3 Rohini` | 3 | 23 | prompt fires |
+| `222-54-678` | `Chakali veedhi naidupeta` | 4 | 35 | non-blocking prompt fires |
+| `2-137 l` | `Pedda Pada Khana` | 5 | 23 | passes — 3 characters above the blocking threshold |
+| `5-136, Saluchintala` | `Saluchintala` | 3 | 32 | prompt fires |
+| `Flat no-409` | `Atchuthapuram` | 3 | 25 | prompt fires |
+| `B-5/246-247` | `Sec-3 Rohini` | 3 | 24 | prompt fires |
 
 Andhra Pradesh door-number addresses are legitimately short. Delhi addresses (gali, block, floor)
 are legitimately long. **Length measures region, not quality.**
