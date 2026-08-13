@@ -1,9 +1,12 @@
 /**
- * Pincode → city / state / locality list.
+ * Pincode → city / state.
  *
  * Default implementation hits the public India Post API. Swap `ENDPOINT`
- * (or pass your own `fetcher`) for the internal PIN master so the locality
- * list matches what operations and the courier partner actually use.
+ * (or pass your own `fetcher`) for the internal PIN master so the city and
+ * state match what operations and the courier partner actually use.
+ *
+ * Area / Village is deliberately NOT derived from here — it is free-form text
+ * the customer types, with no matching against any list.
  */
 
 const ENDPOINT = (pin) => `https://api.postalpincode.in/pincode/${pin}`;
@@ -20,25 +23,8 @@ export class PincodeNotFound extends Error {
 
 const clean = (s = '') => String(s).replace(/\s+/g, ' ').trim();
 
-/** Drop "X B.O", "X S.O", "X H.O" suffixes and dedupe post-office names. */
-function toLocalities(postOffices = []) {
-  const seen = new Map();
-  postOffices.forEach((po) => {
-    const name = clean(po.Name || '').replace(/\s+(B\.?O|S\.?O|H\.?O)$/i, '');
-    if (!name) return;
-    const key = name.toLowerCase();
-    if (!seen.has(key)) seen.set(key, name);
-    // also expose the sub-district / block, often the village name people use
-    [po.Block, po.Division].forEach((extra) => {
-      const e = clean(extra || '');
-      if (e && e.toLowerCase() !== 'na' && !seen.has(e.toLowerCase())) seen.set(e.toLowerCase(), e);
-    });
-  });
-  return [...seen.values()].sort((a, b) => a.localeCompare(b));
-}
-
 /**
- * @returns {Promise<{pincode:string, city:string, state:string, localities:string[]}>}
+ * @returns {Promise<{pincode:string, city:string, state:string}>}
  * @throws {PincodeNotFound}
  */
 export async function lookupPincode(pincode, { signal, fetcher = fetch } = {}) {
@@ -51,17 +37,16 @@ export async function lookupPincode(pincode, { signal, fetcher = fetch } = {}) {
 
   const json = await res.json();
   const first = Array.isArray(json) ? json[0] : json;
-  if (!first || first.Status !== 'Success' || !Array.isArray(first.PostOffice)) {
+  if (!first || first.Status !== 'Success' || !Array.isArray(first.PostOffice) || !first.PostOffice[0]) {
     throw new PincodeNotFound(pin);
   }
 
-  const po = first.PostOffice;
+  const po = first.PostOffice[0];
   const result = {
     pincode: pin,
     // District is the city field the credit systems expect
-    city: clean(po[0].District || po[0].Region || ''),
-    state: clean(po[0].State || ''),
-    localities: toLocalities(po),
+    city: clean(po.District || po.Region || ''),
+    state: clean(po.State || ''),
   };
 
   cache.set(pin, result);
@@ -70,5 +55,5 @@ export async function lookupPincode(pincode, { signal, fetcher = fetch } = {}) {
 
 /** Test/offline seam — lets Storybook and unit tests run without network. */
 export function seedPincode(pin, data) {
-  cache.set(String(pin), { pincode: String(pin), localities: [], ...data });
+  cache.set(String(pin), { pincode: String(pin), ...data });
 }

@@ -14,7 +14,7 @@ form = {
   houseNo:   '',        // Apartment / House / Floor number
   building:  '',        // Apartment name
   locality:  '',        // Street / gali / colony
-  area:      '',        // Area / village (master-backed)
+  area:      '',        // Area / village — free-form text
   landmark:  '',        // Landmark
   ownership: '',        // 'SELF_OWNED' | 'RENTED'
 }
@@ -23,7 +23,6 @@ ctx = {                 // derived, not typed
   city:       '',       // from pincode master
   state:      '',       // from pincode master
   pinStatus:  'idle',   // idle | loading | done | not_found | error
-  areaSource: 'MANUAL', // MASTER | MANUAL
 }
 ```
 
@@ -77,7 +76,7 @@ when a customer starts with a unit token, the building identity is the missing p
 |---|---|---|
 | Keystroke | nothing | nothing (never validate per keystroke — V-T1) |
 | Field blur | all rules for that field, plus any field that depends on it | that field's error/warning only |
-| Pincode = 6 digits | debounced 350ms master lookup | city/state chip, area list |
+| Pincode = 6 digits | debounced 350ms master lookup | city/state chip |
 | Continue pressed | every rule + the form-level gate | all field errors + red hint above the CTA + CTA in blocked state + focus first blocking field |
 | Confirm pressed | nothing new | submit |
 
@@ -118,19 +117,18 @@ zero. `pinStatus === 'error'` (network failure) is **not** blocking — see §6.
 
 | ID | Sev | Condition | Message |
 |---|---|---|---|
-| V-10 | B | trimmed length < 3 | "Select or enter your area / village" |
+| V-10 | B | trimmed length < 3 | "Enter your area or village" |
 | V-11 | B | matches `/^[\d\W_]+$/` (digits/punctuation only) | "Enter a name, not only numbers" |
 | V-12 | B | `norm(area) === norm(state)` | "Enter your area or village, not the state" |
 | V-13 | B | length > 60 | "Keep this under 60 characters" |
 | W-10 | N | `norm(area) === norm(city)` | "That is the city name — add your smaller area or village if it has one" |
-| W-11 | N | `areaSource === 'MANUAL'` and length ≥3 | "Not in our list for this pincode — double-check the spelling" |
 
 **Why area == city is a warning, not a block:** the pincode master itself returns the city name as a
 valid post-office name for some pincodes (e.g. `530041` → "Visakhapatnam"). Blocking would reject a
-value the form just offered. In small towns the area genuinely *is* the town.
+value that is genuinely correct. In small towns the area really is the town.
 
-`areaSource` resolves to `MASTER` when the value was picked from the list **or** typed as an exact
-case-insensitive match of a list entry — so autofill and paste are not punished by W-11.
+**Area is free-form.** Nothing is matched against the pincode master: village, colony and
+extension names it does not carry are common, and a spelling nag on a correct value costs more than it saves.
 
 ### 4.4 Apartment / House / Floor number
 
@@ -214,7 +212,7 @@ string comparison instead of a heuristic over one blob.
 
 | ID | Sev | Condition | Message |
 |---|---|---|---|
-| V-70 | B | coverage score < 3 (§5) | "Your address is too short to deliver — add street, area or a landmark" |
+| V-70 | B | coverage score < 3 (§5) | "Your address needs more detail — add street, area or a landmark" |
 
 ---
 
@@ -263,18 +261,24 @@ proceed is coverage, and W-44 says where to add detail.
 
 | ID | Rule |
 |---|---|
-| S-01 | While any blocking error is **visible** (a touched field, or every field once Continue has been pressed), the meter renders red with "Not deliverable yet — complete the fields marked in red", whatever the score says |
+| S-01 | While any blocking error is **visible** (a touched field, or every field once Continue has been pressed), the meter renders red with "Incomplete — complete the fields marked in red", whatever the score says |
+| S-02 | **Idle state.** Score 0 with nothing flagged yet (page just loaded) renders grey and neutral: "Fill in your address details to see how complete it is". No red on arrival |
+
+S-02 exists because score 0 otherwise maps to "Too little detail" — greeting a customer with a red
+verdict before they have typed a character reads as an accusation rather than guidance. The red state
+is earned, not the default.
 
 Reason: coverage can read 3/5 with a mandatory field still empty — apartment name + locality + area
-and no house number. Showing "Okay — deliverable" above a red House-number field contradicts itself.
+and no house number. Showing "Okay — a landmark makes you easier to find" above a red House-number field contradicts itself.
 The score still drives the dot count; only the tone and text are overridden.
 
 | Score | Meter | Copy | Submit |
 |---|---|---|---|
-| 0–1 | ●○○○○ red | "Too short to deliver" | blocked (V-70) |
+| 0 · nothing typed yet | ○○○○○ grey | "Fill in your address details to see how complete it is" | — (S-02) |
+| 0–1 | ●○○○○ red | "Too little detail" | blocked (V-70) |
 | 2 | ●●○○○ red | "Needs more detail" | blocked (V-70) |
-| 3 | ●●●○○ amber | "Okay — a landmark helps couriers find you" | allowed |
-| 4 | ●●●●○ green | "Good — deliverable" | allowed |
+| 3 | ●●●○○ amber | "Okay — a landmark makes you easier to find" | allowed |
+| 4 | ●●●●○ green | "Good — clear and complete" | allowed |
 | 5 | ●●●●● green | "Excellent — easy to find" | allowed |
 
 **Why 3 is the right threshold.** Every legitimate address shape reaches it without padding, and no
@@ -302,14 +306,14 @@ component, so V-70 is a backstop that also covers future field additions.
         │                              │
       idle                    debounce 350ms
    (city/state blank,                  │
-    area list empty)              loading  ──► shimmer on the city/state chip
+                                  loading  ──► shimmer on the city/state chip
                                        │
                     ┌──────────────────┼───────────────────┐
                   success          Status≠Success        network/5xx
                     │                  │                    │
                   done             not_found              error
           city/state shown     V-03 blocks           NOT blocking:
-          area list loaded     "check pincode"        "Couldn't check right now",
+          (area is typed)      "check pincode"        "Couldn't check right now",
                                                      manual area entry still allowed
 ```
 
@@ -317,8 +321,8 @@ Rules:
 
 - **P-01** In-flight requests are aborted when the pincode changes again (`AbortController`).
 - **P-02** Resolved pincodes are cached for the session; re-entry is instant, no refetch.
-- **P-03** Changing the pincode **clears `area`** and resets `areaSource` — an area from a different
-  pincode is always wrong.
+- **P-03** Changing the pincode leaves `area` untouched — it is free-form and not derived from the
+  pincode, so correcting a typo never wipes what the customer typed.
 - **P-04** `error` (network) never hard-blocks: the customer can still type an area and submit. Only
   `not_found` (the master answered, and said no) blocks via V-03.
 - **P-05** City/state show a shimmer while loading, never a blank flash or a stale value.
@@ -424,7 +428,6 @@ The prefix check prevents "Near Behind DRM office" — real data contains `Behin
   "meta": {
     "addressScore": 5,
     "houseNoSignal": "keyword",
-    "areaSource": "MASTER",
     "buildingWasRequired": true
   }
 }
@@ -458,9 +461,9 @@ Evaluated top to bottom, first match wins. Mirrors the `signal` column of the an
 
 | ID | Case | Behaviour |
 |---|---|---|
-| E-01 | Pincode master has no area for a real village | Free-text row "Use *X* — not in the list"; submits with `areaSource: MANUAL`; W-11 shown |
+| E-01 | Pincode master has no area for a real village | Irrelevant — area is free-form, nothing is checked against the master |
 | E-02 | Pincode API down | `pinStatus: error`; city/state blank; manual area allowed; submit **not** blocked (P-04) |
-| E-03 | Customer edits pincode after filling area | Area cleared, list reloaded (P-03) |
+| E-03 | Customer edits pincode after filling area | Area kept; only city/state re-resolve (P-03) |
 | E-04 | Area list's only entry is the city name | Allowed; W-10 nudge only |
 | E-05 | House genuinely has no number (rural plot) | Blocked by V-21 — deliberate. Correct customer action is the door/survey number, or the plot number the courier uses. Watch `address_field_error` volume on V-21 in the first week; if it is heavy in specific pincodes, revisit with real cases |
 | E-06 | Landmark typed into Locality | Passes V-42 if it has a street word, else blocked. Not further policed — both fields print on the label anyway |
@@ -469,7 +472,7 @@ Evaluated top to bottom, first match wins. Mirrors the `signal` column of the an
 | E-09 | Pincode pasted into Locality/Area/Landmark | Silently stripped (S-03) + W-72 explains |
 | E-10 | Pincode pasted into House number | Blocked by V-23, never auto-edited (S-04) |
 | E-11 | Non-Latin script | V-00 blocks |
-| E-12 | Autofill fills every field at once | All rules run at Continue; exact area match counts as `MASTER`, no false W-11 |
+| E-12 | Autofill fills every field at once | All rules run at Continue; area accepted as typed |
 | E-13 | `Same as current` on Permanent address | Copies components; toggling off leaves values editable (FR-40/41) |
 | E-14 | Score 3 but all short values | Allowed by design — `9-208-1` + `Bahadurpet` + landmark is a real, deliverable address |
 
@@ -507,7 +510,7 @@ Drawn from real rows in the `1_complete` bucket, re-expressed as components. `�
 | T-28 | houseNo `530041 Flat 2` | V-23 | "Remove the pincode from this field" |
 | T-29 | pincode `53004` | V-02 | "Enter a valid 6-digit pincode" |
 | T-30 | pincode `999999` (master says no) | V-03 | "We couldn't find this pincode — please check" |
-| T-31 | houseNo + area only, both filled | V-70 (score 2) | "Your address is too short to deliver…" |
+| T-31 | houseNo + area only, both filled | V-70 (score 2) | "Your address needs more detail…" |
 | T-32 | landmark `Near` (4 chars), locality empty | V-51 | "Too short — mention a shop, temple, school or office" |
 | T-33 | locality `विनोद नगर` | V-00 | "Use English letters and numbers only" |
 | T-34 | ownership unset | V-61 | "Select property ownership" |
@@ -518,7 +521,6 @@ Drawn from real rows in the `1_complete` bucket, re-expressed as components. `�
 |---|---|---|---|
 | T-40 | area = city (`Visakhapatnam`) | W-10 | black hint, submits |
 | T-41 | locality `Jayanthi embearled`, area `Jayanthi embearled` | W-70 | black hint, submits |
-| T-42 | area typed, absent from master list | W-11 | black hint, submits, `areaSource: MANUAL` |
 | T-43 | landmark empty, locality present | W-50 | black hint, submits |
 | T-44 | locality `Naraina Village 110028` | W-72 + S-03 | pincode stripped on blur, hint shown, submits |
 | T-45 | houseNo `13-59/1/2, FF 101, 3rd Floor` (28 chars) | W-20 | black hint, submits |
@@ -529,9 +531,8 @@ Drawn from real rows in the `1_complete` bucket, re-expressed as components. `�
 |---|---|---|
 | T-60 | Type into any field, do not blur | no error shown (V-T1) |
 | T-61 | Press Continue on an empty form | red summary lists all blocking items; focus lands on Pincode |
-| T-62 | Change pincode after choosing an area | area cleared, list reloaded (P-03) |
+| T-62 | Change pincode after filling area | area preserved, city/state re-resolve (P-03) |
 | T-63 | Kill the network, enter a valid pincode | "Couldn't check right now"; manual area entry works; submit allowed (P-04) |
 | T-64 | Enter pincode, then re-enter the same one | resolves from cache, no second request (P-02) |
 | T-65 | Type a pincode fast, digit by digit | at most one request fires (350ms debounce, prior aborted — P-01) |
-| T-66 | Pick area from list vs type it exactly | both yield `areaSource: MASTER`, no W-11 |
 | T-67 | Screen reader on a blocking field | error announced via `role="alert"`; `aria-invalid` set |

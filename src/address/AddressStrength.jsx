@@ -10,8 +10,18 @@ import { strengthLabel } from './addressValidation';
  */
 export default function AddressStrength({ score, total = 5, blocked = false }) {
   const base = strengthLabel(score);
-  const tone = blocked ? 'bad' : base.tone;
-  const text = blocked ? 'Not deliverable yet — complete the fields marked in red' : base.text;
+
+  // Nothing entered and nothing flagged yet: stay neutral. Greeting a customer
+  // with "Too little detail" before they have typed a character reads as an
+  // accusation, not guidance.
+  const idle = score === 0 && !blocked;
+
+  const tone = idle ? 'idle' : blocked ? 'bad' : base.tone;
+  const text = idle
+    ? 'Fill in your address details to see how complete it is'
+    : blocked
+      ? 'Incomplete — complete the fields marked in red'
+      : base.text;
 
   return (
     <div className={`eq-strength eq-strength--${tone}`}>

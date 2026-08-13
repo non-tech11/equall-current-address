@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import AreaCombobox from './AreaCombobox';
 import AddressStrength from './AddressStrength';
 import ConfirmAddressSheet from './ConfirmAddressSheet';
 import { lookupPincode, PincodeNotFound } from './pincodeService';
@@ -96,8 +95,7 @@ export default function AddressForm({
   const [form, setForm] = useState({ ...EMPTY, ...initialValue });
   const [touched, setTouched] = useState({});
   const [attempted, setAttempted] = useState(false);
-  const [areaSource, setAreaSource] = useState('MANUAL');
-  const [pin, setPin] = useState({ status: 'idle', city: '', state: '', localities: [] });
+  const [pin, setPin] = useState({ status: 'idle', city: '', state: '' });
   const [confirming, setConfirming] = useState(false);
 
   const refs = useRef({});
@@ -105,17 +103,11 @@ export default function AddressForm({
     refs.current[name] = el;
   };
 
-  // Typing an exact master value counts as MASTER too — autofill and paste
-  // shouldn't be punished with a "not in our list" warning.
-  const effectiveAreaSource = useMemo(() => {
-    const typed = form.area.trim().toLowerCase();
-    if (typed && pin.localities.some((o) => o.toLowerCase() === typed)) return 'MASTER';
-    return areaSource;
-  }, [form.area, pin.localities, areaSource]);
-
+  // Area is free-form: nothing is matched against the pincode master, so there
+  // is no "source" to track and no list to fall out of.
   const ctx = useMemo(
-    () => ({ city: pin.city, state: pin.state, pinStatus: pin.status, areaSource: effectiveAreaSource }),
-    [pin.city, pin.state, pin.status, effectiveAreaSource],
+    () => ({ city: pin.city, state: pin.state, pinStatus: pin.status }),
+    [pin.city, pin.state, pin.status],
   );
 
   const { errors, warnings, score, ok, firstErrorField } = useMemo(
@@ -131,7 +123,7 @@ export default function AddressForm({
   useEffect(() => {
     const value = form.pincode.trim();
     if (!/^[1-9]\d{5}$/.test(value)) {
-      setPin({ status: 'idle', city: '', state: '', localities: [] });
+      setPin({ status: 'idle', city: '', state: '' });
       return;
     }
 
@@ -140,12 +132,12 @@ export default function AddressForm({
       setPin((p) => ({ ...p, status: 'loading' }));
       try {
         const res = await lookupPincode(value, { signal: controller.signal });
-        setPin({ status: 'done', city: res.city, state: res.state, localities: res.localities });
-        onEvent('address_pincode_resolved', { pincode: value, areas: res.localities.length });
+        setPin({ status: 'done', city: res.city, state: res.state });
+        onEvent('address_pincode_resolved', { pincode: value });
       } catch (err) {
         if (controller.signal.aborted) return;
         const notFound = err instanceof PincodeNotFound || err?.code === 'NOT_FOUND';
-        setPin({ status: notFound ? 'not_found' : 'error', city: '', state: '', localities: [] });
+        setPin({ status: notFound ? 'not_found' : 'error', city: '', state: '' });
         onEvent('address_pincode_failed', { pincode: value, reason: notFound ? 'not_found' : 'error' });
       }
     }, 350);
@@ -165,8 +157,9 @@ export default function AddressForm({
 
   const handlePincode = (raw) => {
     const digits = raw.replace(/\D/g, '').slice(0, 6);
-    setForm((f) => (digits === f.pincode ? f : { ...f, pincode: digits, area: '' }));
-    setAreaSource('MANUAL');
+    // Area is no longer derived from the pincode, so it survives a pincode
+    // correction instead of being wiped.
+    setForm((f) => (digits === f.pincode ? f : { ...f, pincode: digits }));
   };
 
   const handleBlur = (name) => {
@@ -209,7 +202,6 @@ export default function AddressForm({
 
   const labelLines = useMemo(() => assembleLabel(form, ctx), [form, ctx]);
   const needsBuilding = buildingRequired(form);
-  const areaDisabled = pin.status !== 'done' && pin.localities.length === 0;
 
   // The meter turns red as soon as a blocking error is *visible* to the
   // customer — touched fields, or everything once Continue has been pressed.
@@ -415,29 +407,30 @@ export default function AddressForm({
             )}
           </Field>
 
-          {/* 6 — area from the pincode master */}
+          {/* 6 — area: free-form text. Nothing is matched against the pincode
+              master: village and colony names it does not carry are common, and
+              a spelling nag on a correct value is worse than no check. */}
           <Field
             id="area"
             label={FIELD_LABELS.area}
             required
             error={shown('area')}
             warning={warnFor('area')}
-            hint={areaDisabled ? 'Enter your pincode to see areas' : 'Pick from the list where possible'}
+            hint="Your area, colony or village name"
           >
             {(describedBy) => (
-              <AreaCombobox
+              <input
                 id="area"
-                inputRef={setRef('area')}
+                ref={setRef('area')}
+                className={`eq-input ${shown('area') ? 'eq-input--error' : ''}`}
+                type="text"
+                maxLength={60}
+                autoComplete="address-level3"
+                placeholder="e.g. Madhurawada"
                 value={form.area}
-                options={pin.localities}
-                loading={pin.status === 'loading'}
-                disabled={areaDisabled}
-                invalid={Boolean(shown('area'))}
-                describedBy={describedBy}
-                onChange={(val, source) => {
-                  setValue('area', val);
-                  setAreaSource(source);
-                }}
+                aria-invalid={shown('area') ? true : undefined}
+                aria-describedby={describedBy}
+                onChange={(e) => setValue('area', e.target.value)}
                 onBlur={() => handleBlur('area')}
               />
             )}

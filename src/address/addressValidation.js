@@ -106,16 +106,16 @@ export function underLengthFields(form) {
 export { SCORE_MIN };
 
 export function strengthLabel(score) {
-  if (score <= 1) return { tone: 'bad', text: 'Too short to deliver' };
+  if (score <= 1) return { tone: 'bad', text: 'Too little detail' };
   if (score === 2) return { tone: 'bad', text: 'Needs more detail' };
-  if (score === 3) return { tone: 'ok', text: 'Okay — a landmark helps couriers find you' };
-  if (score === 4) return { tone: 'good', text: 'Good — deliverable' };
+  if (score === 3) return { tone: 'ok', text: 'Okay — a landmark makes you easier to find' };
+  if (score === 4) return { tone: 'good', text: 'Good — clear and complete' };
   return { tone: 'good', text: 'Excellent — easy to find' };
 }
 
 /**
  * Validate one field. Returns an error string (blocking) or null.
- * `ctx` carries resolved pincode data: { city, state, pinStatus, areaSource }.
+ * `ctx` carries resolved pincode data: { city, state, pinStatus }.
  */
 export function validateField(name, form, ctx = {}) {
   const raw = String(form[name] ?? '');
@@ -132,7 +132,7 @@ export function validateField(name, form, ctx = {}) {
     }
 
     case 'area': {
-      if (v.length < 3) return 'Select or enter your area / village';
+      if (v.length < 3) return 'Enter your area or village';
       if (DIGITS_ONLY_RE.test(v)) return 'Enter a name, not only numbers';
       // area == city is only a warning: in small towns the post office name and
       // the city name are genuinely the same. area == state never is.
@@ -236,10 +236,6 @@ export function collectWarnings(form, ctx = {}) {
     out.push({ field: 'area', text: 'That is the city name — add your smaller area or village if it has one' });
   }
 
-  if (ctx.areaSource === 'MANUAL' && String(form.area || '').trim().length >= 3) {
-    out.push({ field: 'area', text: 'Not in our list for this pincode — double-check the spelling' });
-  }
-
   return out;
 }
 
@@ -256,7 +252,7 @@ export function validateAddress(form, ctx = {}) {
 
   const score = addressScore(form);
   if (score < MIN_SCORE) {
-    errors._form = 'Your address is too short to deliver — add street, area or a landmark';
+    errors._form = 'Your address needs more detail — add street, area or a landmark';
   }
 
   const firstErrorField = FIELD_ORDER.find((f) => errors[f]) || null;
@@ -310,7 +306,6 @@ export function toPayload(form, ctx = {}) {
     meta: {
       addressScore: addressScore(form),
       houseNoSignal: houseNoSignal(form.houseNo),
-      areaSource: ctx.areaSource || 'MANUAL',
       buildingWasRequired: buildingRequired(form),
     },
   };

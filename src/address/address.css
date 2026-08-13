@@ -397,6 +397,7 @@
   background: #e2e2ec;
 }
 
+.eq-strength--idle .eq-dot--on { background: #c9c9d6; }
 .eq-strength--bad .eq-dot--on { background: var(--eq-error); }
 .eq-strength--ok .eq-dot--on { background: #d68b00; }
 .eq-strength--good .eq-dot--on { background: var(--eq-ok); }
@@ -407,6 +408,7 @@
   font-weight: 600;
 }
 
+.eq-strength--idle .eq-strength__text { color: var(--eq-ink-soft); font-weight: 400; }
 .eq-strength--bad .eq-strength__text { color: var(--eq-error); }
 .eq-strength--ok .eq-strength__text { color: #8a5a00; }
 .eq-strength--good .eq-strength__text { color: var(--eq-ok); }

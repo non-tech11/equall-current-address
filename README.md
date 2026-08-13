@@ -53,10 +53,9 @@ Permanent-address variant:
 |---|---|
 | `AddressForm.jsx` | The screen: fields, blur validation, error summary, scroll-to-first-error |
 | `addressValidation.js` | All rules, the coverage score, label assembly, API payload. No React — unit-testable as-is |
-| `AreaCombobox.jsx` | Area / village picker off the pincode master, with a `MANUAL` escape hatch |
 | `AddressStrength.jsx` | Coverage meter (replaces the character-count rule) |
 | `ConfirmAddressSheet.jsx` | Delivery-label preview before submit |
-| `pincodeService.js` | Pincode → city / state / area list, with cache |
+| `pincodeService.js` | Pincode → city / state, with cache |
 | `address.css` | Scoped styles, all under `.eq-*` |
 
 ## Before production

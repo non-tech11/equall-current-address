@@ -17,7 +17,7 @@
 Customers submit addresses too short to deliver to. The existing fix — minimum character and word
 counts on two free-text lines — blocks legitimate rural addresses while letting genuine junk
 through. Replace the two free-text lines with **seven structured components**, derive city/state and
-an area list from the pincode, and gate submission on **how many components are present** rather
+city and state from the pincode, and gate submission on **how many components are present** rather
 than how many characters were typed.
 
 ---
@@ -68,7 +68,7 @@ available, and length is the wrong signal.
 |---|---|
 | G1 | No submitted address lacking a house/flat/door number |
 | G2 | No submitted address lacking a locality-or-landmark level detail |
-| G3 | Area value canonical (from pincode master) wherever the master has coverage |
+| G3 | Area captured as its own dedicated field, never mixed into a free-text line |
 | G4 | Short-but-complete rural addresses submit without friction |
 | G5 | Address-step drop-off does not increase |
 
@@ -92,7 +92,6 @@ available, and length is the wrong signal.
 | M2 — Undeliverable | RTO / failed-delivery rate on new captures | ↓ vs 30-day pre-launch baseline |
 | M3 — Correction load | Address-edit support tickets per 1,000 onboardings | ↓ |
 | M4 — Funnel | Address-step completion rate | ≥ pre-launch (guardrail, must not regress) |
-| M5 — Master gaps | Share of submissions with `areaSource = MANUAL` | Tracked; feeds the pincode-master backlog |
 
 Baselines for M1–M4 must be captured before the flag is enabled.
 
@@ -103,7 +102,7 @@ Baselines for M1–M4 must be captured before the flag is enabled.
 **In:** Current address screen; Permanent address screen (same component, `Same as current` toggle
 copies components); India pincodes only; mobile web + app webview.
 
-**Dependencies:** internal pincode master endpoint (pincode → city, state, area list); city-master
+**Dependencies:** internal pincode master endpoint (pincode → city, state); city-master
 data fix (see R3).
 
 ---
@@ -119,7 +118,7 @@ Priority: **P0** blocks launch · **P1** wanted at launch · **P2** follow-up.
 | FR-01 | P0 | Address Line 1 / Line 2 free-text fields are removed and replaced by the components in §6.2 |
 | FR-02 | P0 | Pincode is the first field on the page |
 | FR-03 | P0 | City and State are read-only, derived from pincode, and never typed by the customer |
-| FR-04 | P0 | Area / Village is a picker populated from the pincode master, with a free-text fallback |
+| FR-04 | P0 | Area / Village is free-form text — no list matching, no spelling check against the pincode master |
 | FR-05 | P0 | Payload carries both the components and legacy `lineOne`/`lineTwo` strings (dual-write) |
 | FR-06 | P1 | Home type (Flat/Apartment · Independent house) is captured and drives the Apartment-name requirement |
 
@@ -133,7 +132,7 @@ Priority: **P0** blocks launch · **P1** wanted at launch · **P2** follow-up.
 | FR-13 | Apartment / House / Floor number | Yes | 40 | Must contain a digit (see LOGIC V-20) |
 | FR-14 | Apartment name | Conditional | 60 | Required when home type = Flat, or house no. carries a unit token |
 | FR-15 | Locality (street, gali, colony) | Conditional | 60 | Required unless Landmark present |
-| FR-16 | Area / Village | Yes | 60 | Master-backed picker |
+| FR-16 | Area / Village | Yes | 60 | Free-form text, no list matching |
 | FR-17 | Landmark | Conditional | 50 | Required when Locality empty; otherwise optional and nudged |
 | FR-18 | Property ownership | Yes | — | Self-Owned · Rented (unchanged from today) |
 
@@ -189,7 +188,7 @@ Priority: **P0** blocks launch · **P1** wanted at launch · **P2** follow-up.
 | House no. | Apartment / House / Floor number * | House / flat / floor / door number | Include the floor if you have one — e.g. Flat 501, 3rd Floor · 9-208-1 · H.No 830 |
 | Apartment name | Apartment name * / (optional) | e.g. NVV Golden Classic | Society, tower or building name |
 | Locality | Locality (street, gali, colony) | Street, gali or colony | e.g. Gali no 5, Mittal Colony · 4th Cross Road |
-| Area | Area / Village * | Start typing your area or village | Pick from the list where possible |
+| Area | Area / Village * | e.g. Madhurawada | Your area, colony or village name |
 | Landmark | Landmark (optional) | Nearby shop, temple, school or office | e.g. Near Mahathi School · Behind DRM office |
 | Ownership | Property ownership * | — | — |
 
@@ -197,13 +196,13 @@ Priority: **P0** blocks launch · **P1** wanted at launch · **P2** follow-up.
 
 Full list with rule IDs in [LOGIC.md §4](LOGIC.md). Headlines:
 
-- Blocking, form level: "Your address is too short to deliver — add street, area or a landmark"
+- Blocking, form level: "Your address needs more detail — add street, area or a landmark"
 - Blocking, house no.: "Enter your house / flat / door number" · "This doesn't look like a real house number"
 - Blocking, locality/landmark pair: "Enter street / gali / colony — or add a landmark instead"
 - Non-blocking: "Couriers find addresses faster with a landmark"
 - CTA hint when blocked: "Complete the fields marked in red to continue"
-- Strength meter when blocked: "Not deliverable yet — complete the fields marked in red"
-- Confirm sheet: "Your card and all documents will be delivered here."
+- Strength meter when blocked: "Incomplete — complete the fields marked in red"
+- Confirm sheet: "Your card and all documents will be sent to this address."
 
 ---
 
@@ -242,12 +241,12 @@ release.
 
 | Event | Payload | Question it answers |
 |---|---|---|
-| `address_pincode_resolved` | pincode, area count | Master coverage per pincode |
+| `address_pincode_resolved` | pincode | City/state resolution health |
 | `address_pincode_failed` | pincode, reason | Master gaps, API health |
 | `address_field_error` | field, message | Which rule costs the most friction |
 | `address_submit_blocked` | fields, score, firstErrorField | Where the funnel breaks |
 | `address_confirm_shown`, `address_confirm_edit` | score | Does the label preview cause edits? |
-| `address_submitted` | full `meta` (score, houseNoSignal, areaSource) | Quality trend vs baseline |
+| `address_submitted` | full `meta` (score, houseNoSignal) | Quality trend vs baseline |
 
 `meta.houseNoSignal` reuses the `signal` taxonomy from the analysis sheet (`keyword` / `slash` /
 `alnum` / `no_prefix` / `none`) so the before/after mix is directly comparable.
@@ -259,7 +258,7 @@ release.
 | ID | Risk | Impact | Mitigation |
 |---|---|---|---|
 | R1 | More fields ⇒ higher drop-off | Funnel | Continue never disabled; blur-only validation; strength meter as progress not punishment; M4 as launch guardrail |
-| R2 | Pincode master lacks the customer's village | Blocking dead-end | Explicit "Use *X* — not in the list" free-text row, logged as `MANUAL` for the master backlog |
+| R2 | Pincode master lacks the customer’s village | Blocking dead-end | Area is free-form text — there is no list to be absent from |
 | R3 | City master is wrong for some pincodes — `110025 → BUDAUN` with state `DELHI` in 3 production rows | Wrong city printed on the confirm sheet | Fix the master rows before enabling the flag |
 | R4 | Public pincode API disagrees with production city data — `517644` returns *Chittoor*, production says *Tirupati* | Customer sees an unexpected city | Point `pincodeService.ENDPOINT` at the internal master before launch |
 | R5 | Pincode API latency or outage | Customer cannot proceed | Cache; on failure allow manual area entry and never hard-block on the lookup itself |
@@ -285,10 +284,9 @@ release.
 | # | Question | Owner | Blocking? |
 |---|---|---|---|
 | Q1 | Failing buckets `2_*` / `3_*` of the analysis sheet were never reviewed — the reader truncated at `1_complete`. Needed to tune the placeholder and junk lists. | Anshul | No — v1 ships on the patterns that leaked into the complete bucket |
-| Q2 | Which internal endpoint serves pincode → area list, and does it cover villages? | Eng / Ops | **Yes** — R2, R4 |
+| Q2 | Which internal endpoint serves pincode → city / state? | Eng | **Yes** — R4 |
 | Q3 | Do downstream systems have a max length on `lineOne` / `lineTwo`? Components can now exceed today's 100-char cap when concatenated. | Eng | **Yes** — truncation strategy needed |
 | Q4 | Is Home type acceptable as a new mandatory field, or should the Apartment-name rule rely on the house-no. unit token alone? | Product | No — token-only fallback already implemented |
-| Q5 | Should `areaSource = MANUAL` submissions route to a manual ops review queue? | Ops | No |
 
 ---
 

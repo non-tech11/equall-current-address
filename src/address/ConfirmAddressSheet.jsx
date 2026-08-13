@@ -26,7 +26,7 @@ export default function ConfirmAddressSheet({ lines, warnings = [], onEdit, onCo
           </button>
         </div>
 
-        <p className="eq-sheet__sub">Your card and all documents will be delivered here.</p>
+        <p className="eq-sheet__sub">Your card and all documents will be sent to this address.</p>
 
         <address className="eq-label">
           {lines.map((line, i) => (

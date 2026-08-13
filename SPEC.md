@@ -49,13 +49,13 @@ Free-text Address Line 1 / Line 2 are removed. Hierarchy runs narrow → wide.
 | 4 | **Apartment / House / Floor number** | Yes | 40 | Must contain a digit |
 | 5 | **Apartment name** | Conditional | 60 | Mandatory when home type = Flat, or house no. starts with a unit token (`Flat`, `F.No`, `TF-`, `S1`, `Block`, `Room`, `Door`) |
 | 6 | **Locality** (street, gali, colony) | Conditional | 60 | Mandatory unless a Landmark is given |
-| 7 | **Area / Village** | Yes | 60 | Dropdown from the pincode master, free text allowed but tagged `MANUAL` |
+| 7 | **Area / Village** | Yes | 60 | **Free-form text.** No matching against any list — village and colony names are too varied to gate on |
 | 8 | **Landmark** | Conditional | 50 | Mandatory when Locality is empty; otherwise optional and nudged |
 | 9 | **Property ownership** — Self-Owned · Rented | Yes | — | Unchanged from today |
 
 Why this beats validating free text:
 
-- **Area from the master** ⇒ canonical spelling; `line2 = "Delhi"` becomes impossible.
+- **Area is its own field** ⇒ the city can no longer be typed where the area belongs; the value stays free-form so no village is ever a dead end.
 - **House number in its own field** ⇒ the digit rule is unambiguous; no regex guessing over prose.
 - **Locality *or* Landmark** ⇒ villages with no street name pass via landmark; city addresses with
   no landmark pass via street. Nobody is blocked, no field is silently empty.
@@ -70,10 +70,11 @@ locality 5, area 4, landmark 5 characters).
 
 | Score | Meter | Message | Behaviour |
 |---|---|---|---|
-| 0–1 | ●○○○○ red | "Too short to deliver" | Blocking |
+| 0 · nothing typed yet | ○○○○○ grey | "Fill in your address details to see how complete it is" | — (S-02) |
+| 0–1 | ●○○○○ red | "Too little detail" | Blocking |
 | 2 | ●●○○○ red | "Needs more detail" | Blocking |
-| 3 | ●●●○○ amber | "Okay — a landmark helps couriers find you" | Passes |
-| 4 | ●●●●○ green | "Good — deliverable" | Passes |
+| 3 | ●●●○○ amber | "Okay — a landmark makes you easier to find" | Passes |
+| 4 | ●●●●○ green | "Good — clear and complete" | Passes |
 | 5 | ●●●●● green | "Excellent — easy to find" | Passes |
 
 Minimum score to submit = **3**. This threshold is not arbitrary — every legitimate address shape
@@ -92,9 +93,8 @@ A vague address cannot reach 3 without supplying real detail.
 | Field | Rule | Type | Message |
 |---|---|---|---|
 | Pincode | `^[1-9]\d{5}$` and resolvable in the master | Blocking | "Enter a valid 6-digit pincode" / "We couldn't find this pincode — please check" |
-| Area | ≥3 chars, not digits-only, ≠ state name | Blocking | "Select or enter your area / village" |
+| Area | ≥3 chars, not digits-only, ≠ state name | Blocking | "Enter your area or village" |
 | Area | = city name | Non-blocking | "That is the city name — add your smaller area or village if it has one" |
-| Area | typed, not in master list | Non-blocking | "Not in our list for this pincode — double-check the spelling" |
 | House number | non-empty, contains a digit | Blocking | "Enter your house / flat / door number" · "House number must include a digit" |
 | House number | not a placeholder (`0`, `0-0`, `00`, `NA`, `nil`, `xx`, `test`) | Blocking | "This doesn't look like a real house number" |
 | House number | contains a 6-digit pincode | Blocking | "Remove the pincode from this field" |
@@ -108,7 +108,7 @@ A vague address cannot reach 3 without supplying real detail.
 | Any text field | characters outside `A–Z a–z 0–9 space , . / # & ( ) ' -` | Blocking | "Use English letters and numbers only" |
 | Any text field | contains a 6-digit pincode | Non-blocking, auto-stripped on blur | "Pincode removed — it is already captured above" |
 | Apartment name / Locality / Landmark | equals the Area value | Non-blocking | "Same as your area — is this correct?" |
-| Whole form | score < 3 | Blocking | "Your address is too short to deliver — add street, area or a landmark" |
+| Whole form | score < 3 | Blocking | "Your address needs more detail — add street, area or a landmark" |
 
 Colour convention (per the existing validation sheet): blocking = **red**, at field level *and* in the
 top-of-page summary. Non-blocking = **black**, field level only.
@@ -122,8 +122,8 @@ top-of-page summary. Non-blocking = **black**, field level only.
 3. **The blocked CTA stays tappable.** Tapping it scrolls to and focuses the first bad
    field. A disabled button hides the reason it is disabled.
 4. Pincode resolves with a shimmer placeholder on city/state — never a blank flash.
-5. Area dropdown: master list + type-ahead + an explicit "Use *X* — not in the list" row. Every use
-   of that row is logged; it is the pincode-master gap report.
+5. Area is free-form text. Nothing is matched against the pincode master — village and colony names
+   it does not carry are common, and a spelling nag on a correct value costs more than it saves.
 6. On blur: trim, collapse inner whitespace, strip leading/trailing separators, strip stray pincodes.
 7. "Same as current" on the permanent-address screen copies **components**, not concatenated lines.
 8. Accessibility: every field labelled, errors in `role="alert"`, `aria-invalid` on failure, segmented
@@ -172,7 +172,6 @@ make them abandon.
   "meta": {
     "addressScore": 5,
     "houseNoSignal": "keyword",   // keyword | slash | alnum | no_prefix | none
-    "areaSource": "MASTER",       // MASTER | MANUAL
     "buildingWasRequired": true
   }
 }
@@ -187,7 +186,7 @@ directly comparable once this ships.
 
 | Event | Payload | Use |
 |---|---|---|
-| `address_pincode_resolved` | pincode, area count | Master coverage |
+| `address_pincode_resolved` | pincode | City/state resolution health |
 | `address_pincode_failed` | pincode, reason | Master gaps / API health |
 | `address_field_error` | field, message | Which rule hurts most |
 | `address_submit_blocked` | fields, score, firstErrorField | Funnel drop diagnosis |
@@ -202,7 +201,7 @@ address-edit support tickets (target ↓), address-step drop-off (must not rise)
 ## 9. Dependencies and known gaps
 
 1. **Pincode master.** The reference build uses the public India Post API. Swap `ENDPOINT` in
-   `pincodeService.js` for the internal master so the area list matches what ops and the courier
+   `pincodeService.js` for the internal master so city and state match what ops and the courier
    partner use. The two disagree today — e.g. `517644` returns district *Chittoor* from India Post
    while the production rows record city *Tirupati*.
 2. **City master defect.** Pincode `110025` maps to city `BUDAUN` with state `DELHI` in three
