@@ -176,7 +176,9 @@ export function validateField(name, form, ctx = {}) {
 
     case 'houseNo': {
       if (!v) return 'Enter your house / flat / door number';
-      if (!/\d/.test(v)) return 'House number must include a digit';
+      // No "must contain a digit" rule: genuine rural plots, named houses and
+      // survey-number addresses carry no numeral, and blocking them costs more
+      // than the junk it caught.
       if (PLACEHOLDER_RE.test(norm(v))) return "This doesn't look like a real house number";
       if (PIN_IN_TEXT_RE.test(v)) return 'Remove the pincode from this field';
       if (v.length > 40) return 'Too long — put the apartment name in the next field';
@@ -194,8 +196,12 @@ export function validateField(name, form, ctx = {}) {
       return null;
     }
 
+    // Street and landmark are both optional on their own. Neither is present in
+    // every real address — village addresses have no street, dense urban ones
+    // have no useful landmark — so the coverage gate (MIN_SCORE) decides whether
+    // enough of the address is there, not a per-field requirement.
     case 'locality': {
-      if (!v) return 'Enter street / gali / colony';
+      if (!v) return null;
       if (v.length < 3) return 'Too short — add the street, gali or colony name';
       if (v && DIGITS_ONLY_RE.test(v) && !STREET_WORD_RE.test(v))
         return 'Enter a street or colony name, not only numbers';

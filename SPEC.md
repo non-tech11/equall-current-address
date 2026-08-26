@@ -46,7 +46,7 @@ Free-text Address Line 1 / Line 2 are removed. Hierarchy runs narrow → wide.
 | 1 | **Pincode** | Yes | 6 | Entered first; drives everything below |
 | 2 | City, State | auto | — | Read-only, resolved from pincode, never typed |
 | 3 | **Home type** — Flat/Apartment · Independent house | Yes | — | Decides whether #5 is mandatory |
-| 4 | **Apartment / House / Floor number** | Yes | 40 | Must contain a digit |
+| 4 | **Apartment / House / Floor number** | Yes | 40 | Non-empty; no digit requirement |
 | 5 | **Apartment name** | Conditional | 60 | Mandatory when home type = Flat, or house no. starts with a unit token (`Flat`, `F.No`, `TF-`, `S1`, `Block`, `Room`, `Door`) |
 | 6 | **Locality** (street, gali, colony) | Conditional | 60 | Mandatory unless a Landmark is given |
 | 7 | **Area / Village** | Yes | 60 | **Free-form text.** No matching against any list — village and colony names are too varied to gate on |
@@ -95,12 +95,12 @@ A vague address cannot reach 3 without supplying real detail.
 | Pincode | `^[1-9]\d{5}$` and resolvable in the master | Blocking | "Enter a valid 6-digit pincode" / "We couldn't find this pincode — please check" |
 | Area | ≥3 chars, not digits-only, ≠ state name | Blocking | "Enter your area or village" |
 | Area | = city name | Non-blocking | "That is the city name — add your smaller area or village if it has one" |
-| House number | non-empty, contains a digit | Blocking | "Enter your house / flat / door number" · "House number must include a digit" |
+| House number | non-empty | Blocking | "Enter your house / flat / door number" |
 | House number | not a placeholder (`0`, `0-0`, `00`, `NA`, `nil`, `xx`, `test`) | Blocking | "This doesn't look like a real house number" |
 | House number | contains a 6-digit pincode | Blocking | "Remove the pincode from this field" |
 | House number | >25 chars | Non-blocking | "Long house number — the apartment name goes in the next field" |
 | Apartment name | ≥3 chars when required | Blocking | "Enter the apartment or building name" |
-| Locality | required | Blocking | "Enter street / gali / colony" |
+| Locality | optional; validated only when filled | — | (no blocking message) |
 | Locality | digits-only with no street word (`gali`, `road`, `sector`, `colony`, `nagar`, `cross` …) | Blocking | "Enter a street or colony name, not only numbers" |
 | Landmark | optional; validated only when filled | — | (no blocking message) |
 | Landmark | present but <5 chars | Blocking | "Too short — mention a shop, temple, school or office" |

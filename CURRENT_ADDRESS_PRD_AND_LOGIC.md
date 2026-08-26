@@ -60,7 +60,7 @@ check · non-India addresses · OCR autofill.
 | 1 | **Pincode** | Yes | 6 | First field. Resolves city and state |
 | 2 | City, State | auto | — | Read-only, never typed |
 | 3 | **Home type** — Flat/Apartment · Independent house | Yes | — | Decides whether #5 is mandatory |
-| 4 | **Apartment / House / Floor number** | Yes | 40 | Must contain a digit |
+| 4 | **Apartment / House / Floor number** | Yes | 40 | Non-empty; no digit requirement |
 | 5 | **Apartment name** | Conditional | 60 | Mandatory for flats, or when #4 starts with a unit token |
 | 6 | **Locality** (street, gali, colony) | Conditional | 60 | Mandatory unless a Landmark is given |
 | 7 | **Area / Village** | Yes | 60 | **Free-form text.** No matching against any list — village and colony names are too varied to gate on |
@@ -70,7 +70,7 @@ check · non-India addresses · OCR autofill.
 Why it works where free text could not:
 
 - Area is its own field ⇒ the city can no longer land where the area belongs, and the value is free-form so no village is ever a dead end.
-- House number has its own field ⇒ "must contain a digit" is unambiguous and safe to block on.
+- House number has its own field, but it is not required to contain a digit: named houses, rural plots and survey numbers legitimately carry none.
 - Locality **or** Landmark ⇒ villages with no street pass via landmark; cities with no landmark pass
   via street. Neither population is blocked, and no field is left silently empty.
 - Duplicate detection is a string comparison between fields, not a heuristic over one blob.
@@ -276,7 +276,7 @@ locality  landmark   verdict
 | V-13 | area | B | >60 chars | "Keep this under 60 characters" |
 | W-10 | area | N | equals the city name | "That is the city name — add your smaller area or village if it has one" |
 | V-20 | houseNo | B | empty | "Enter your house / flat / door number" |
-| V-21 | houseNo | B | contains no digit | "House number must include a digit" |
+| V-21 | houseNo | — | (removed — no digit requirement) | — |
 | V-22 | houseNo | B | matches `PLACEHOLDER_RE` | "This doesn't look like a real house number" |
 | V-23 | houseNo | B | contains a 6-digit pincode | "Remove the pincode from this field" |
 | V-24 | houseNo | B | >40 chars | "Too long — put the apartment name in the next field" |
@@ -284,7 +284,7 @@ locality  landmark   verdict
 | V-30 | building | B | required and <3 chars | "Enter the apartment or building name" |
 | V-31 | building | B | required and digits only | "Enter a name, not only numbers" |
 | V-32 | building | B | >60 chars | "Keep this under 60 characters" |
-| V-40 | locality | B | empty | "Enter street / gali / colony" |
+| V-40 | locality | — | (removed — locality is optional) | — |
 | V-41 | locality | B | non-empty and <3 chars | "Too short — add the street, gali or colony name" |
 | V-42 | locality | B | digits only and no street word | "Enter a street or colony name, not only numbers" |
 | V-43 | locality | B | >60 chars | "Keep this under 60 characters" |
@@ -424,7 +424,7 @@ The prefix check prevents "Near Behind DRM office" — real data contains `Behin
 | `slash` | `/\d+\s?[-/]\s?\d/` | `9-208-1`, `B-5/246-247` |
 | `alnum` | `/^[a-z]{1,3}[\s-]?\d/i` | `RZ 66`, `C-76` |
 | `no_prefix` | contains any digit | `303` |
-| `none` | no digit | blocked by V-21 |
+| `none` | no digit | accepted — named or survey-number houses |
 
 Landmark has no legacy home — send it as its own field or it is lost.
 
@@ -436,7 +436,7 @@ Landmark has no legacy home — send it as its own field or it is lost.
 | E-02 | Pincode API down | Manual area entry; submit allowed (P-04) |
 | E-03 | Pincode edited after area filled | Area kept; only city/state re-resolve (P-03) |
 | E-04 | Only master entry is the city name | Allowed; W-10 nudge |
-| E-05 | House genuinely has no number | Blocked by V-21 — deliberate; monitor `address_field_error` volume on V-21 by pincode in week 1 |
+| E-05 | House genuinely has no number | Accepted — V-21 removed; V-22 still blocks placeholder junk (`0-0`, `NA`) |
 | E-06 | Landmark typed into Locality | Passes if it has a street word; both print on the label anyway |
 | E-07 | Locality = Area | W-70, submits |
 | E-08 | Flat with no society name | V-30 blocks; escape is Independent house |

@@ -139,7 +139,7 @@ extension names it does not carry are common, and a spelling nag on a correct va
 | ID | Sev | Condition | Message |
 |---|---|---|---|
 | V-20 | B | empty | "Enter your house / flat / door number" |
-| V-21 | B | contains no digit (`/\d/`) | "House number must include a digit" |
+| V-21 | — | (removed — a house number is no longer required to contain a digit) | — |
 | V-22 | B | `norm(v)` matches `PLACEHOLDER_RE` | "This doesn't look like a real house number" |
 | V-23 | B | contains `/\b[1-9]\d{5}\b/` | "Remove the pincode from this field" |
 | V-24 | B | length > 40 | "Too long — put the apartment name in the next field" |
@@ -151,10 +151,10 @@ PLACEHOLDER_RE = /^(0|00|0\s?0|na|n\s?a|nil|none|null|x+|test|abcd?|asdf|same|ho
 
 Sourced from real junk: `0-0, ramayalyam street` normalises to `0 0` and is caught by V-22.
 
-V-21 is the single most important rule on the page — it is the ex-"non-blocking prompt" from the old
-sheet, promoted to blocking. It is only safe to block *because* the house number now has its own
-field: on a free-text line, "no digit found" also fires on `New Ashok Nagar` typed by someone whose
-house genuinely has no number, and the old design could not tell the two apart.
+V-21 (house number must contain a digit) has been removed. Even on its own field the rule fires on
+`New Ashok Nagar` typed by someone whose house genuinely has no number, and on rural plots and
+survey-number addresses. V-22's placeholder list still catches the junk values the rule was aimed at
+(`0-0`, `NA`, `XX`), so blocking on a missing numeral bought nothing and cost real addresses.
 
 Note the asymmetry with §8: a stray pincode is **stripped silently** from other fields but **blocks**
 here, because silently deleting digits from a house number could produce a wrong-but-plausible value.
@@ -171,7 +171,7 @@ here, because silently deleting digits from a house number could produce a wrong
 
 | ID | Sev | Condition | Message |
 |---|---|---|---|
-| V-40 | B | empty | "Enter street / gali / colony" |
+| V-40 | — | (removed — locality is optional; coverage gate blocks a thin address) | — |
 | V-41 | B | non-empty and length < 3 | "Too short — add the street, gali or colony name" |
 | V-42 | B | digits/punctuation only **and** no street word | "Enter a street or colony name, not only numbers" |
 | V-43 | B | length > 60 | "Keep this under 60 characters" |
@@ -458,7 +458,7 @@ Evaluated top to bottom, first match wins. Mirrors the `signal` column of the an
 | `slash` | `/\d+\s?[-/]\s?\d/` | `9-208-1`, `76-97-270-18`, `B-5/246-247` |
 | `alnum` | `/^[a-z]{1,3}[\s-]?\d/i` | `RZ 66`, `WZ-125 A`, `C-76` |
 | `no_prefix` | contains any digit | `303`, `22-199/1` |
-| `none` | no digit | (blocked by V-21) |
+| `none` | no digit | accepted — named or survey-number houses |
 
 ---
 
@@ -470,7 +470,7 @@ Evaluated top to bottom, first match wins. Mirrors the `signal` column of the an
 | E-02 | Pincode API down | `pinStatus: error`; city/state blank; manual area allowed; submit **not** blocked (P-04) |
 | E-03 | Customer edits pincode after filling area | Area kept; only city/state re-resolve (P-03) |
 | E-04 | Area list's only entry is the city name | Allowed; W-10 nudge only |
-| E-05 | House genuinely has no number (rural plot) | Blocked by V-21 — deliberate. Correct customer action is the door/survey number, or the plot number the courier uses. Watch `address_field_error` volume on V-21 in the first week; if it is heavy in specific pincodes, revisit with real cases |
+| E-05 | House genuinely has no number (rural plot) | Accepted — V-21 removed. The customer types the door / survey / plot identifier the courier uses, digit or not; V-22 still blocks placeholder junk |
 | E-06 | Landmark typed into Locality | Passes V-42 if it has a street word, else blocked. Not further policed — both fields print on the label anyway |
 | E-07 | Same value in Locality and Area | W-70 warning, submits |
 | E-08 | Flat with no society name (small building) | V-30 blocks if home type = Flat. Escape: pick Independent house, or put the owner/building identifier in Apartment name |
@@ -505,9 +505,9 @@ Drawn from real rows in the `1_complete` bucket, re-expressed as components. `�
 | # | Input | Rule | Expected message |
 |---|---|---|---|
 | T-20 | houseNo `0-0` | V-22 | "This doesn't look like a real house number" |
-| T-21 | houseNo `New Ashok Nagar` | V-21 | "House number must include a digit" |
+| T-21 | houseNo `New Ashok Nagar` | — | accepted (V-21 removed) |
 | T-22 | houseNo empty | V-20 | "Enter your house / flat / door number" |
-| T-23 | locality empty + landmark empty | V-40 | "Enter street / gali / colony" (landmark optional) |
+| T-23 | locality empty + landmark empty | coverage gate | "Your address needs more detail — add street, area or a landmark" |
 | T-24 | area `Delhi`, state `DELHI` | V-12 | "Enter your area or village, not the state" |
 | T-25 | area `110025` | V-11 | "Enter a name, not only numbers" |
 | T-26 | homeType `FLAT`, building empty | V-30 | "Enter the apartment or building name" |

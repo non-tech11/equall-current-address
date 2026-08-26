@@ -129,7 +129,7 @@ Priority: **P0** blocks launch · **P1** wanted at launch · **P2** follow-up.
 | FR-10 | Pincode | Yes | 6 | Numeric only, drives FR-03 / FR-04 |
 | FR-11 | City, State | Auto | — | Read-only |
 | FR-12 | Home type | Yes | — | Flat/Apartment · Independent house |
-| FR-13 | Apartment / House / Floor number | Yes | 40 | Must contain a digit (see LOGIC V-20) |
+| FR-13 | Apartment / House / Floor number | Yes | 40 | Non-empty (see LOGIC V-20); no digit requirement |
 | FR-14 | Apartment name | Conditional | 60 | Required when home type = Flat, or house no. carries a unit token |
 | FR-15 | Locality (street, gali, colony) | Conditional | 60 | Required unless Landmark present |
 | FR-16 | Area / Village | Yes | 60 | Free-form text, no list matching |
@@ -198,7 +198,7 @@ Full list with rule IDs in [LOGIC.md §4](LOGIC.md). Headlines:
 
 - Blocking, form level: "Your address needs more detail — add street, area or a landmark"
 - Blocking, house no.: "Enter your house / flat / door number" · "This doesn't look like a real house number"
-- Blocking, locality: "Enter street / gali / colony" (landmark is optional and never blocks)
+- Locality and landmark are both optional; the coverage gate (3 of 5 components) blocks a thin address instead
 - CTA hint when blocked: "Complete the fields marked in red to continue"
 - Strength meter when blocked: "Incomplete — complete the fields marked in red"
 - Confirm sheet: "Your card and all documents will be sent to this address."
@@ -303,6 +303,6 @@ Rules being retired, verbatim from the validation sheet:
 | Line 1&2 combined `<20 characters` | Blocking | **Removed** — threshold sits only 3 characters below the shortest real address in the complete bucket (`2-137 l` / `Pedda Pada Khana`, 23 chars) |
 | Line 1&2 combined `<5 words` | Non-blocking | **Removed** — fires on 3-word complete AP addresses |
 | Line 1 `Min 10` characters | Mandatory | **Removed** — house no. field min is 2 chars (`2-137 l` is valid) |
-| Line 1 no-digit → prompt | Non-blocking | **Promoted to blocking** on the house-number field |
+| Line 1 no-digit → prompt | Non-blocking | Dropped — a house number may legitimately carry no digit |
 | Landmark optional, max-length only | Non-blocking | **Now conditionally mandatory** when Locality is empty |
 | Allowed chars, only-numbers-not-allowed | Blocking | **Retained**, applied per component |

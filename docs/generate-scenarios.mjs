@@ -69,6 +69,15 @@ const HAPPY = [
     }),
   },
   {
+    name: 'House with a name, no number',
+    who: 'The digit rule is gone — a named house passes',
+    ctx: DL,
+    f: form({
+      pincode: '110091', homeType: 'INDEPENDENT', houseNo: 'New Ashok Nagar',
+      locality: 'Gali No 4', area: 'Mithapur',
+    }),
+  },
+  {
     name: 'Village, no street name at all',
     who: 'Rural Andhra — the case the old rules punished',
     ctx: { city: 'Chittoor', state: 'Andhra Pradesh', pinStatus: 'done' },
@@ -95,7 +104,6 @@ const HAPPY = [
 const BLOCKS = [
   ['Nothing entered, Continue pressed', form(), AP],
   ['House number left empty', form({ building: 'Salarpuria Silverwoods', locality: 'CV Raman Nagar', area: 'Bangalore North' }), AP],
-  ['House number has no digit', form({ houseNo: 'New Ashok Nagar', locality: 'Gali No 4', area: 'Mithapur' }), AP],
   ['Placeholder house number', form({ houseNo: '0-0', locality: 'Ramalayam Street', area: 'Pedapariya' }), AP],
   ['Placeholder "NA"', form({ houseNo: 'NA', locality: 'Ramalayam Street', area: 'Pedapariya' }), AP],
   ['Pincode typed into the house field', form({ houseNo: '530041 Flat 2', locality: 'Main Road', area: 'Madhurawada' }), AP],

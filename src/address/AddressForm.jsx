@@ -34,11 +34,11 @@ const TEXT_FIELDS = ['houseNo', 'building', 'locality', 'area', 'landmark'];
  */
 const COPY = {
   FLAT: {
-    houseNo: { label: 'Flat / Unit no.', placeholder: 'B-1204' },
+    houseNo: { label: 'Flat / Unit no + Floor Number', placeholder: 'B-1204, 12th floor', hint: '' },
     building: { label: 'Apartment / Society name', placeholder: 'e.g. Prestige Shantiniketan' },
   },
   DEFAULT: {
-    houseNo: { label: 'House / Plot no.', placeholder: '475' },
+    houseNo: { label: 'House / Plot no.', placeholder: '475', hint: 'Add floor if any' },
     building: { label: 'Building / house name', placeholder: 'e.g. Sai Nilaya' },
   },
 };
@@ -359,7 +359,7 @@ export default function AddressForm({
               required
               error={shown('houseNo')}
               warning={warnFor('houseNo')}
-              hint="Add floor if any"
+              hint={copy.houseNo.hint}
             >
               {(describedBy) => (
                 <input
@@ -410,7 +410,7 @@ export default function AddressForm({
           <Field
             id="locality"
             label="Street / Road / Gali"
-            required
+            optional
             error={shown('locality')}
             warning={warnFor('locality')}
           >
