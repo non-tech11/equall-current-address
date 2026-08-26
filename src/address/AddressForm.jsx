@@ -128,7 +128,7 @@ function Choice({ name, ariaLabel, options, value, onPick, innerRef }) {
  */
 export default function AddressForm({
   title = 'Current address',
-  subtitle = 'A precise address helps us verify your application FASTER.',
+  subtitle = 'A precise address of where you currently RESIDE helps us verify your application',
   backLabel,
   onBack,
   initialValue,
@@ -318,10 +318,10 @@ export default function AddressForm({
 
         {subtitle && (
           <p className="eq-subtitle">
-            {/* the promise, not decoration: the emphasised word is why the
-                extra fields are worth filling in */}
-            {subtitle.split(/(FASTER)/).map((part, i) =>
-              part === 'FASTER' ? <strong key={i}>{part}</strong> : part,
+            {/* an all-caps word in the subtitle is the emphasis: it carries
+                why the extra fields are worth filling in */}
+            {subtitle.split(/([A-Z]{3,})/).map((part, i) =>
+              /^[A-Z]{3,}$/.test(part) ? <strong key={i}>{part}</strong> : part,
             )}
           </p>
         )}
