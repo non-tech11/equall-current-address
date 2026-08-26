@@ -410,7 +410,7 @@ export default function AddressForm({
           <Field
             id="locality"
             label="Street / Road / Gali"
-            optional
+            required
             error={shown('locality')}
             warning={warnFor('locality')}
           >

@@ -78,12 +78,12 @@ const HAPPY = [
     }),
   },
   {
-    name: 'Village, no street name at all',
-    who: 'Rural Andhra — the case the old rules punished',
+    name: 'Village, ward instead of a street name',
+    who: 'Rural Andhra — short but complete, no landmark needed',
     ctx: { city: 'Chittoor', state: 'Andhra Pradesh', pinStatus: 'done' },
     f: form({
       pincode: '517644', homeType: 'INDEPENDENT', houseNo: '9-208-1',
-      area: 'Bahadurpet', landmark: 'Near the bus stop',
+      locality: 'Ward 3', area: 'Bahadurpet', landmark: 'Near the bus stop',
     }),
   },
   {
@@ -108,6 +108,7 @@ const BLOCKS = [
   ['Placeholder "NA"', form({ houseNo: 'NA', locality: 'Ramalayam Street', area: 'Pedapariya' }), AP],
   ['Pincode typed into the house field', form({ houseNo: '530041 Flat 2', locality: 'Main Road', area: 'Madhurawada' }), AP],
   ['Neither street nor landmark', form({ houseNo: '9-208-1', area: 'Bahadurpet' }), AP],
+  ['Landmark given, street left empty', form({ houseNo: '9-208-1', area: 'Bahadurpet', landmark: 'Near the bus stop' }), AP],
   ['Flat without the society name', form({ homeType: 'FLAT', houseNo: 'Flat 501', locality: 'Main Road', area: 'Madhurawada' }), AP],
   ['Unit token implies a flat, name missing', form({ homeType: 'INDEPENDENT', houseNo: 'Flat no-409', locality: 'Main Road', area: 'Atchuthapuram' }), AP],
   ['Area left empty', form({ houseNo: 'B-5/246-247', locality: 'Sec-3 Rohini' }), DL],

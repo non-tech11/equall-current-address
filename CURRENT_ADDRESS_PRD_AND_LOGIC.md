@@ -284,7 +284,7 @@ locality  landmark   verdict
 | V-30 | building | B | required and <3 chars | "Enter the apartment or building name" |
 | V-31 | building | B | required and digits only | "Enter a name, not only numbers" |
 | V-32 | building | B | >60 chars | "Keep this under 60 characters" |
-| V-40 | locality | — | (removed — locality is optional) | — |
+| V-40 | locality | B | empty | "Enter street / gali / colony" |
 | V-41 | locality | B | non-empty and <3 chars | "Too short — add the street, gali or colony name" |
 | V-42 | locality | B | digits only and no street word | "Enter a street or colony name, not only numbers" |
 | V-43 | locality | B | >60 chars | "Keep this under 60 characters" |

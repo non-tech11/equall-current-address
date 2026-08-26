@@ -196,12 +196,12 @@ export function validateField(name, form, ctx = {}) {
       return null;
     }
 
-    // Street and landmark are both optional on their own. Neither is present in
-    // every real address — village addresses have no street, dense urban ones
-    // have no useful landmark — so the coverage gate (MIN_SCORE) decides whether
-    // enough of the address is there, not a per-field requirement.
+    // Street is required on its own, with no landmark escape: it is the field
+    // verification leans on hardest, and a landmark is not a substitute
+    // for it. A village address with no named street puts its ward, cross or
+    // survey identifier here — that is what the courier reads.
     case 'locality': {
-      if (!v) return null;
+      if (!v) return 'Enter street / gali / colony';
       if (v.length < 3) return 'Too short — add the street, gali or colony name';
       if (v && DIGITS_ONLY_RE.test(v) && !STREET_WORD_RE.test(v))
         return 'Enter a street or colony name, not only numbers';

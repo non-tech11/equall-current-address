@@ -171,7 +171,7 @@ here, because silently deleting digits from a house number could produce a wrong
 
 | ID | Sev | Condition | Message |
 |---|---|---|---|
-| V-40 | — | (removed — locality is optional; coverage gate blocks a thin address) | — |
+| V-40 | B | empty | "Enter street / gali / colony" |
 | V-41 | B | non-empty and length < 3 | "Too short — add the street, gali or colony name" |
 | V-42 | B | digits/punctuation only **and** no street word | "Enter a street or colony name, not only numbers" |
 | V-43 | B | length > 60 | "Keep this under 60 characters" |
@@ -507,7 +507,7 @@ Drawn from real rows in the `1_complete` bucket, re-expressed as components. `�
 | T-20 | houseNo `0-0` | V-22 | "This doesn't look like a real house number" |
 | T-21 | houseNo `New Ashok Nagar` | — | accepted (V-21 removed) |
 | T-22 | houseNo empty | V-20 | "Enter your house / flat / door number" |
-| T-23 | locality empty + landmark empty | coverage gate | "Your address needs more detail — add street, area or a landmark" |
+| T-23 | locality empty (landmark filled or not) | V-40 | "Enter street / gali / colony" |
 | T-24 | area `Delhi`, state `DELHI` | V-12 | "Enter your area or village, not the state" |
 | T-25 | area `110025` | V-11 | "Enter a name, not only numbers" |
 | T-26 | homeType `FLAT`, building empty | V-30 | "Enter the apartment or building name" |
