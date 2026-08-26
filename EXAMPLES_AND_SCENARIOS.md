@@ -136,9 +136,9 @@ DELHI – 110044
 | Landmark | `Near the bus stop` |
 | Property ownership | Self-Owned |
 
-**Strength:** 3/5 — "Okay — a landmark makes you easier to find"
+**Strength:** 3/5 — "Incomplete — complete the fields marked in red"
 
-**Continue →** confirm sheet opens
+**Continue →** blocked
 
 ```
 Confirm your address
@@ -233,20 +233,20 @@ DELHI – 110018
 
 | # | Scenario | Key input | Score | What the customer sees |
 |---|---|---|:-:|---|
-| B1 | Nothing entered, Continue pressed | houseNo empty, area empty | 0 | **area:** Enter your area or village<br>**houseNo:** Enter your house / flat / door number<br>**locality:** Enter street / gali / colony — or add a landmark instead<br>**landmark:** Add a nearby landmark so we can find you<br>**form:** Your address needs more detail — add street, area or a landmark |
+| B1 | Nothing entered, Continue pressed | houseNo empty, area empty | 0 | **area:** Enter your area or village<br>**houseNo:** Enter your house / flat / door number<br>**locality:** Enter street / gali / colony<br>**form:** Your address needs more detail — add street, area or a landmark |
 | B2 | House number left empty | houseNo empty, locality `CV Raman Nagar`, area `Bangalore North` | 3 | **houseNo:** Enter your house / flat / door number |
 | B3 | House number has no digit | houseNo `New Ashok Nagar`, locality `Gali No 4`, area `Mithapur` | 3 | **houseNo:** House number must include a digit |
 | B4 | Placeholder house number | houseNo `0-0`, locality `Ramalayam Street`, area `Pedapariya` | 3 | **houseNo:** This doesn't look like a real house number |
 | B5 | Placeholder "NA" | houseNo `NA`, locality `Ramalayam Street`, area `Pedapariya` | 3 | **houseNo:** House number must include a digit |
 | B6 | Pincode typed into the house field | houseNo `530041 Flat 2`, locality `Main Road`, area `Madhurawada` | 3 | **houseNo:** Remove the pincode from this field |
-| B7 | Neither street nor landmark | houseNo `9-208-1`, area `Bahadurpet` | 2 | **locality:** Enter street / gali / colony — or add a landmark instead<br>**landmark:** Add a nearby landmark so we can find you<br>**form:** Your address needs more detail — add street, area or a landmark |
+| B7 | Neither street nor landmark | houseNo `9-208-1`, area `Bahadurpet` | 2 | **locality:** Enter street / gali / colony<br>**form:** Your address needs more detail — add street, area or a landmark |
 | B8 | Flat without the society name | houseNo `Flat 501`, locality `Main Road`, area `Madhurawada` | 3 | **building:** Enter the apartment or building name |
 | B9 | Unit token implies a flat, name missing | houseNo `Flat no-409`, locality `Main Road`, area `Atchuthapuram` | 3 | **building:** Enter the apartment or building name |
 | B10 | Area left empty | houseNo `B-5/246-247`, locality `Sec-3 Rohini`, area empty | 2 | **area:** Enter your area or village<br>**form:** Your address needs more detail — add street, area or a landmark |
 | B11 | Area is the state name | houseNo `H.No 830`, locality `Gali No 4`, area `Delhi` | 3 | **area:** Enter your area or village, not the state |
 | B12 | Area is only digits | houseNo `H.No 830`, locality `Gali No 4`, area `110025` | 3 | **area:** Enter a name, not only numbers |
 | B13 | Short area + short locality (score 2) | houseNo `303`, locality `Main`, area `CVR`, landmark `Near park` | 2 | **form:** Your address needs more detail — add street, area or a landmark |
-| B14 | Landmark too short, no street | houseNo `9-208-1`, area `Bahadurpet`, landmark `Near` | 2 | **locality:** Enter street / gali / colony — or add a landmark instead<br>**landmark:** Too short — mention a shop, temple, school or office<br>**form:** Your address needs more detail — add street, area or a landmark |
+| B14 | Landmark too short, no street | houseNo `9-208-1`, area `Bahadurpet`, landmark `Near` | 2 | **locality:** Enter street / gali / colony<br>**landmark:** Too short — mention a shop, temple, school or office<br>**form:** Your address needs more detail — add street, area or a landmark |
 | B15 | Non-Latin script | houseNo `9-208-1`, locality `विनोद नगर`, area `Bahadurpet` | 3 | **locality:** Please type your address in English |
 | B16 | Emoji in the apartment name | houseNo `Flat 2`, locality `Main Road`, area `Madhurawada` | 4 | **building:** Please type your address in English |
 | B17 | Pincode too short | pincode `53004`, houseNo `H.No 830`, locality `Gali No 4`, area `Madhurawada` | 3 | **pincode:** Enter a valid 6-digit pincode |
@@ -326,28 +326,28 @@ mapped into the new components and run through the rule set.
 
 | id | old rule | houseNo | building | locality | area | landmark | score | signal | new outcome |
 |---|---|---|---|---|---|---|:-:|---|---|
-| 10305 | prompt (<5 words) | `9-208-1` | `bahadurpet` | — | `Bahadurpet` | — | 3 | slash | BLOCK — locality, landmark |
-| 19008 | passed | `8-119` | `RAVINAGAR NAIDUTHOTA` | — | `Vepagunta VISAKHAPATNAM` | — | 3 | slash | BLOCK — locality, landmark |
+| 10305 | prompt (<5 words) | `9-208-1` | `bahadurpet` | — | `Bahadurpet` | — | 3 | slash | BLOCK — locality |
+| 19008 | passed | `8-119` | `RAVINAGAR NAIDUTHOTA` | — | `Vepagunta VISAKHAPATNAM` | — | 3 | slash | BLOCK — locality |
 | 23986 | prompt (<5 words) | `222-54-678` | — | `Chakali veedhi naidupeta` | — | — | 2 | slash | BLOCK — area |
-| 24650 | passed | `2-137` | `l` | — | `Pedda Pada Khana` | — | 2 | slash | BLOCK — locality, landmark |
+| 24650 | passed | `2-137` | `l` | — | `Pedda Pada Khana` | — | 2 | slash | BLOCK — locality |
 | 31668 | prompt (<5 words) | `21-101` | — | `lane 9` | `Kakaninagar` | — | 3 | slash | **PASS** |
-| 40090 | passed | `3/92-1` | `Chinthalapalli village` | — | `Chigicherla post` | — | 3 | slash | BLOCK — locality, landmark |
+| 40090 | passed | `3/92-1` | `Chinthalapalli village` | — | `Chigicherla post` | — | 3 | slash | BLOCK — locality |
 | 50417 | prompt (<5 words) | `5-32` | — | `Bc colony` | `Muthukur` | — | 3 | slash | **PASS** |
 | 50464 | passed | `25-17-398` | `Guntur` | `6/4 srinivasarao thota` | — | — | 3 | slash | BLOCK — area |
 | 52918 | passed | `11-4-6` | — | `Bank road` | `Appikonda street` | — | 3 | slash | **PASS** |
 | 53845 | passed | `55-16-8` | `Lig 82` | `Hb colony` | — | — | 3 | slash | BLOCK — area |
-| 57319 | passed | `S1` | `Jayanthi embearled` | — | `Jayanthi embearled` | — | 3 | alnum | BLOCK — locality, landmark |
+| 57319 | passed | `S1` | `Jayanthi embearled` | — | `Jayanthi embearled` | — | 3 | alnum | BLOCK — locality |
 | 64486 | passed | `23/450/1` | — | `Arigelavari street` | `Fathekan peta` | — | 3 | slash | **PASS** |
-| 64625 | prompt (<5 words) | `5-136` | `Saluchintala` | — | `Saluchintala` | — | 3 | slash | BLOCK — locality, landmark |
+| 64625 | prompt (<5 words) | `5-136` | `Saluchintala` | — | `Saluchintala` | — | 3 | slash | BLOCK — locality |
 | 72246 | passed | `D. No 28-156` | — | `Kapu street` | — | — | 2 | keyword | BLOCK — area |
 | 83275 | prompt (<5 words) | `1-259` | — | `ramalayam st` | `Kalivelapalem` | — | 3 | slash | **PASS** |
-| 94652 | prompt (<5 words) | `Flat no-409` | — | — | `Atchuthapuram` | — | 2 | keyword | BLOCK — building, locality, landmark |
+| 94652 | prompt (<5 words) | `Flat no-409` | — | — | `Atchuthapuram` | — | 2 | keyword | BLOCK — building, locality |
 | 96649 | passed | `2-84` | — | `Bc colony` | `Jalakanur village` | — | 3 | slash | **PASS** |
 | 96679 | passed | `3-34/A` | `lokamudi` | `Eluru road center` | — | — | 3 | slash | BLOCK — area |
 | 97033 | prompt (<5 words) | `76-97-270-18` | — | `Weeker Section Colony` | — | — | 2 | slash | BLOCK — area |
-| 98189 | prompt (<5 words) | `Door no 1-116/3` | — | — | `Pedagummuluru` | — | 2 | keyword | BLOCK — building, locality, landmark |
+| 98189 | prompt (<5 words) | `Door no 1-116/3` | — | — | `Pedagummuluru` | — | 2 | keyword | BLOCK — building, locality |
 | 99610 | prompt (<5 words) | `3-4-259 3rd` | — | `street` | `Rajugopalpuram` | — | 3 | slash | **PASS** |
-| 99615 | passed | `Flat no 102` | — | — | `M s ramayya` | — | 2 | keyword | BLOCK — building, locality, landmark |
+| 99615 | passed | `Flat no 102` | — | — | `M s ramayya` | — | 2 | keyword | BLOCK — building, locality |
 | 99744 | prompt (<5 words) | `15-63` | — | `kothavuru colony` | `Aganampudi` | — | 3 | slash | **PASS** |
 | 26836 | prompt (<5 words) | `B-5/246-247` | — | `Sec-3 Rohini` | — | — | 2 | slash | BLOCK — area |
 | 20433 | passed | `Rz-25A` | — | `gali no11B` | `Durga park` | — | 3 | alnum | **PASS** |
@@ -359,7 +359,7 @@ mapped into the new components and run through the rule set.
 | 75633 | passed | `434/12` | — | `Lakhpat Colony` | `Meethapur Badarpur` | — | 3 | slash | **PASS** |
 | 61075 | passed | `G19 1st` | — | `floor` | `Vijay chowk` | — | 3 | alnum | **PASS** |
 | 65419 | prompt (<5 words) | `House L-20` | — | `Shastri Nagar` | — | — | 2 | keyword | BLOCK — area |
-| 66069 | passed | `RZI-47` | `Tirath Niwas` | — | `West Sagarpur` | — | 3 | alnum | BLOCK — locality, landmark |
+| 66069 | passed | `RZI-47` | `Tirath Niwas` | — | `West Sagarpur` | — | 3 | alnum | BLOCK — locality |
 | 72123 | passed | `B 166` | — | `GOPAL NAGAR` | `NAJAFGARH` | — | 3 | alnum | **PASS** |
 | 72166 | passed | `C-19` | — | `G Railway Colony` | `Jangpura` | — | 3 | alnum | **PASS** |
 | 93116 | passed | `E 102` | — | `Mansarover Garden` | `Mansarover` | — | 3 | alnum | **PASS** |
@@ -380,10 +380,9 @@ Every string the customer can see, gathered from the scenarios above.
 
 | Severity | Message |
 |---|---|
-| **BLOCK** | Add a nearby landmark so we can find you |
 | **BLOCK** | Enter a name, not only numbers |
 | **BLOCK** | Enter a valid 6-digit pincode |
-| **BLOCK** | Enter street / gali / colony — or add a landmark instead |
+| **BLOCK** | Enter street / gali / colony |
 | **BLOCK** | Enter the apartment or building name |
 | **BLOCK** | Enter your area or village |
 | **BLOCK** | Enter your area or village, not the state |

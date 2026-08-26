@@ -100,9 +100,9 @@ A vague address cannot reach 3 without supplying real detail.
 | House number | contains a 6-digit pincode | Blocking | "Remove the pincode from this field" |
 | House number | >25 chars | Non-blocking | "Long house number — the apartment name goes in the next field" |
 | Apartment name | ≥3 chars when required | Blocking | "Enter the apartment or building name" |
-| Locality | required when Landmark empty | Blocking | "Enter street / gali / colony — or add a landmark instead" |
+| Locality | required | Blocking | "Enter street / gali / colony" |
 | Locality | digits-only with no street word (`gali`, `road`, `sector`, `colony`, `nagar`, `cross` …) | Blocking | "Enter a street or colony name, not only numbers" |
-| Landmark | required when Locality empty | Blocking | "Add a nearby landmark so we can find you" |
+| Landmark | optional; validated only when filled | — | (no blocking message) |
 | Landmark | present but <5 chars | Blocking | "Too short — mention a shop, temple, school or office" |
 | Any text field | non-ASCII after normalisation (other script, emoji) | Blocking | "Please type your address in English" |
 | Any text field | contains a 6-digit pincode | Non-blocking, auto-stripped on blur | "Pincode removed — it is already captured above" |

@@ -171,7 +171,7 @@ here, because silently deleting digits from a house number could produce a wrong
 
 | ID | Sev | Condition | Message |
 |---|---|---|---|
-| V-40 | B | empty **and** landmark < 5 chars | "Enter street / gali / colony — or add a landmark instead" |
+| V-40 | B | empty | "Enter street / gali / colony" |
 | V-41 | B | non-empty and length < 3 | "Too short — add the street, gali or colony name" |
 | V-42 | B | digits/punctuation only **and** no street word | "Enter a street or colony name, not only numbers" |
 | V-43 | B | length > 60 | "Keep this under 60 characters" |
@@ -188,7 +188,7 @@ The street-word escape hatch exists so real values survive V-42: `Gali no 20`, `
 
 | ID | Sev | Condition | Message |
 |---|---|---|---|
-| V-50 | B | empty **and** locality < 3 chars | "Add a nearby landmark so we can find you" |
+| V-50 | — | (removed — landmark is optional and never blocks on being empty) | — |
 | V-51 | B | non-empty and length < 5 | "Too short — mention a shop, temple, school or office" |
 | V-52 | B | length > 50 | "Keep this under 50 characters" |
 
@@ -507,7 +507,7 @@ Drawn from real rows in the `1_complete` bucket, re-expressed as components. `�
 | T-20 | houseNo `0-0` | V-22 | "This doesn't look like a real house number" |
 | T-21 | houseNo `New Ashok Nagar` | V-21 | "House number must include a digit" |
 | T-22 | houseNo empty | V-20 | "Enter your house / flat / door number" |
-| T-23 | locality empty + landmark empty | V-40 + V-50 | "Enter street / gali / colony — or add a landmark instead" |
+| T-23 | locality empty + landmark empty | V-40 | "Enter street / gali / colony" (landmark optional) |
 | T-24 | area `Delhi`, state `DELHI` | V-12 | "Enter your area or village, not the state" |
 | T-25 | area `110025` | V-11 | "Enter a name, not only numbers" |
 | T-26 | homeType `FLAT`, building empty | V-30 | "Enter the apartment or building name" |

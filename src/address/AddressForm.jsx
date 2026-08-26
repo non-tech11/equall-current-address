@@ -24,19 +24,38 @@ const EMPTY = {
   ownership: '',
 };
 
-const FIELD_LABELS = {
-  pincode: 'Pincode',
-  area: 'Area / Village',
-  houseNo: 'Apartment / House / Floor number',
-  building: 'Apartment name',
-  locality: 'Locality (street, gali, colony)',
-  landmark: 'Landmark',
-  homeType: 'Home type',
-  ownership: 'Property ownership',
-};
-
 /** Text fields that get whitespace + stray-pincode cleanup on blur. */
 const TEXT_FIELDS = ['houseNo', 'building', 'locality', 'area', 'landmark'];
+
+/**
+ * Labels and placeholders track the selected home type: a flat dweller reads
+ * "Flat / Unit no.", an independent house owner reads "House / Plot no." The
+ * underlying fields — and every validation rule on them — are identical.
+ */
+const COPY = {
+  FLAT: {
+    houseNo: { label: 'Flat / Unit no.', placeholder: 'B-1204' },
+    building: { label: 'Apartment / Society name', placeholder: 'e.g. Prestige Shantiniketan' },
+  },
+  DEFAULT: {
+    houseNo: { label: 'House / Plot no.', placeholder: '475' },
+    building: { label: 'Building / house name', placeholder: 'e.g. Sai Nilaya' },
+  },
+};
+
+const HomeIcon = () => (
+  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+    <path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-9.5Z" strokeLinejoin="round" />
+    <path d="M9.5 21v-6h5v6" strokeLinejoin="round" />
+  </svg>
+);
+
+const FlatIcon = () => (
+  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+    <rect x="5" y="3" width="14" height="18" rx="1.5" />
+    <path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2" strokeLinecap="round" />
+  </svg>
+);
 
 function Field({ id, label, required, optional, hint, error, warning, children }) {
   const describedBy = [error && `${id}-err`, warning && `${id}-warn`, hint && `${id}-hint`]
@@ -45,11 +64,17 @@ function Field({ id, label, required, optional, hint, error, warning, children }
 
   return (
     <div className={`eq-field ${error ? 'is-error' : ''}`}>
-      <label className="eq-label-text" htmlFor={id}>
-        {label}
-        {required && <span className="eq-req" aria-hidden="true"> *</span>}
-        {optional && <span className="eq-optional"> (optional)</span>}
-      </label>
+      {label && (
+        <label className="eq-label-text" htmlFor={id}>
+          {label}
+          {required && <span className="eq-req" aria-hidden="true"> *</span>}
+          {optional && (
+            <span className="eq-optional" aria-hidden="true">
+              Optional
+            </span>
+          )}
+        </label>
+      )}
 
       {typeof children === 'function' ? children(describedBy || undefined) : children}
 
@@ -72,6 +97,27 @@ function Field({ id, label, required, optional, hint, error, warning, children }
   );
 }
 
+/** Two-button choice row — home type and ownership share the same control. */
+function Choice({ name, ariaLabel, options, value, onPick, innerRef }) {
+  return (
+    <div className="eq-choice" role="radiogroup" aria-label={ariaLabel} ref={innerRef} tabIndex={-1}>
+      {options.map(({ val, text, icon: Icon }) => (
+        <button
+          type="button"
+          key={val}
+          role="radio"
+          aria-checked={value === val}
+          className={`eq-choice__btn ${value === val ? 'is-on' : ''}`}
+          onClick={() => onPick(name, val)}
+        >
+          {Icon && <Icon />}
+          <span>{text}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /**
  * Current / permanent address capture.
  *
@@ -82,6 +128,7 @@ function Field({ id, label, required, optional, hint, error, warning, children }
  */
 export default function AddressForm({
   title = 'Current address',
+  subtitle = 'A precise address helps us verify your application FASTER.',
   backLabel,
   onBack,
   initialValue,
@@ -119,7 +166,7 @@ export default function AddressForm({
   const warnFor = (name) =>
     touched[name] || attempted ? warnings.find((w) => w.field === name)?.text : undefined;
 
-  /* ---- pincode → city / state / area list ------------------------------ */
+  /* ---- pincode → city / state ------------------------------------------ */
   useEffect(() => {
     const value = form.pincode.trim();
     if (!/^[1-9]\d{5}$/.test(value)) {
@@ -153,6 +200,11 @@ export default function AddressForm({
   /* ---- field handlers -------------------------------------------------- */
   const setValue = useCallback((name, value) => {
     setForm((f) => ({ ...f, [name]: value }));
+  }, []);
+
+  const pick = useCallback((name, value) => {
+    setForm((f) => ({ ...f, [name]: value }));
+    setTouched((t) => ({ ...t, [name]: true }));
   }, []);
 
   const handlePincode = (raw) => {
@@ -204,6 +256,7 @@ export default function AddressForm({
 
   const labelLines = useMemo(() => assembleLabel(form, ctx), [form, ctx]);
   const needsBuilding = buildingRequired(form);
+  const copy = form.homeType === 'FLAT' ? COPY.FLAT : COPY.DEFAULT;
 
   // The meter turns red as soon as a blocking error is *visible* to the
   // customer — touched fields, or everything once Continue has been pressed.
@@ -263,6 +316,16 @@ export default function AddressForm({
           )}
         </div>
 
+        {subtitle && (
+          <p className="eq-subtitle">
+            {/* the promise, not decoration: the emphasised word is why the
+                extra fields are worth filling in */}
+            {subtitle.split(/(FASTER)/).map((part, i) =>
+              part === 'FASTER' ? <strong key={i}>{part}</strong> : part,
+            )}
+          </p>
+        )}
+
         <form
           className="eq-card"
           noValidate
@@ -271,139 +334,85 @@ export default function AddressForm({
             handleContinue();
           }}
         >
-          {/* 1 — pincode drives city, state and the area list */}
-          <Field
-            id="pincode"
-            label={FIELD_LABELS.pincode}
-            required
-            error={shown('pincode')}
-            hint="City and state fill in automatically"
-          >
-            {(describedBy) => (
-              <div className="eq-pinrow">
-                <input
-                  id="pincode"
-                  ref={setRef('pincode')}
-                  className={`eq-input eq-input--pin ${shown('pincode') ? 'eq-input--error' : ''}`}
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="postal-code"
-                  maxLength={6}
-                  placeholder="Enter pincode"
-                  value={form.pincode}
-                  aria-invalid={shown('pincode') ? true : undefined}
-                  aria-describedby={describedBy}
-                  onChange={(e) => handlePincode(e.target.value)}
-                  onBlur={() => handleBlur('pincode')}
-                />
-                <div className={`eq-pinres eq-pinres--${pin.status}`} aria-live="polite">
-                  {pin.status === 'loading' && <span className="eq-skel" />}
-                  {pin.status === 'done' && (
-                    <span className="eq-pinres__ok">
-                      ✓ {pin.city}, {pin.state}
-                    </span>
-                  )}
-                  {pin.status === 'not_found' && <span className="eq-pinres__bad">Pincode not found</span>}
-                  {pin.status === 'error' && (
-                    <span className="eq-pinres__bad">Couldn’t check right now</span>
-                  )}
-                </div>
-              </div>
-            )}
+          {/* 1 — home type sits first: it renames the number fields below and
+              decides whether the apartment name is mandatory */}
+          <Field id="homeType" label="" error={shown('homeType')}>
+            <Choice
+              name="homeType"
+              ariaLabel="Home type"
+              innerRef={setRef('homeType')}
+              value={form.homeType}
+              onPick={pick}
+              options={[
+                { val: 'INDEPENDENT', text: 'Independent house', icon: HomeIcon },
+                { val: 'FLAT', text: 'Apartment / flat', icon: FlatIcon },
+              ]}
+            />
           </Field>
 
-          {/* 2 — home type, decides whether the apartment name is mandatory */}
-          <Field id="homeType" label="What kind of home is this?" required error={shown('homeType')}>
-            <div
-              className="eq-seg"
-              role="radiogroup"
-              aria-label="Home type"
-              ref={setRef('homeType')}
-              tabIndex={-1}
+          {/* 2 — narrowest first: unit number, then the building it sits in.
+              A courier reads these two together, so they share a row. */}
+          <div className="eq-row eq-row--2">
+            <Field
+              id="houseNo"
+              label={copy.houseNo.label}
+              required
+              error={shown('houseNo')}
+              warning={warnFor('houseNo')}
+              hint="Add floor if any"
             >
-              {[
-                ['FLAT', 'Flat / Apartment'],
-                ['INDEPENDENT', 'Independent house'],
-              ].map(([val, text]) => (
-                <button
-                  type="button"
-                  key={val}
-                  role="radio"
-                  aria-checked={form.homeType === val}
-                  className={`eq-seg__btn ${form.homeType === val ? 'is-on' : ''}`}
-                  onClick={() => {
-                    setValue('homeType', val);
-                    setTouched((t) => ({ ...t, homeType: true }));
-                  }}
-                >
-                  {text}
-                </button>
-              ))}
-            </div>
-          </Field>
+              {(describedBy) => (
+                <input
+                  id="houseNo"
+                  ref={setRef('houseNo')}
+                  className={`eq-input ${shown('houseNo') ? 'eq-input--error' : ''}`}
+                  type="text"
+                  maxLength={40}
+                  autoComplete="address-line1"
+                  placeholder={copy.houseNo.placeholder}
+                  value={form.houseNo}
+                  aria-invalid={shown('houseNo') ? true : undefined}
+                  aria-describedby={describedBy}
+                  onChange={(e) => setValue('houseNo', e.target.value)}
+                  onBlur={() => handleBlur('houseNo')}
+                />
+              )}
+            </Field>
 
-          {/* 3 — the one field that must contain a digit */}
-          <Field
-            id="houseNo"
-            label={FIELD_LABELS.houseNo}
-            required
-            error={shown('houseNo')}
-            warning={warnFor('houseNo')}
-            hint="Include the floor if you have one — e.g. Flat 501, 3rd Floor · 9-208-1 · H.No 830"
-          >
-            {(describedBy) => (
-              <input
-                id="houseNo"
-                ref={setRef('houseNo')}
-                className={`eq-input ${shown('houseNo') ? 'eq-input--error' : ''}`}
-                type="text"
-                maxLength={40}
-                autoComplete="address-line1"
-                placeholder="House / flat / floor / door number"
-                value={form.houseNo}
-                aria-invalid={shown('houseNo') ? true : undefined}
-                aria-describedby={describedBy}
-                onChange={(e) => setValue('houseNo', e.target.value)}
-                onBlur={() => handleBlur('houseNo')}
-              />
-            )}
-          </Field>
+            {/* required for flats, optional otherwise */}
+            <Field
+              id="building"
+              label={copy.building.label}
+              required={needsBuilding}
+              optional={!needsBuilding}
+              error={shown('building')}
+              warning={warnFor('building')}
+            >
+              {(describedBy) => (
+                <input
+                  id="building"
+                  ref={setRef('building')}
+                  className={`eq-input ${shown('building') ? 'eq-input--error' : ''}`}
+                  type="text"
+                  maxLength={60}
+                  placeholder={copy.building.placeholder}
+                  value={form.building}
+                  aria-invalid={shown('building') ? true : undefined}
+                  aria-describedby={describedBy}
+                  onChange={(e) => setValue('building', e.target.value)}
+                  onBlur={() => handleBlur('building')}
+                />
+              )}
+            </Field>
+          </div>
 
-          {/* 4 — apartment name: required for flats, optional otherwise */}
-          <Field
-            id="building"
-            label={FIELD_LABELS.building}
-            required={needsBuilding}
-            optional={!needsBuilding}
-            error={shown('building')}
-            warning={warnFor('building')}
-            hint={needsBuilding ? 'Society, tower or building name' : 'Add it if your house has a name'}
-          >
-            {(describedBy) => (
-              <input
-                id="building"
-                ref={setRef('building')}
-                className={`eq-input ${shown('building') ? 'eq-input--error' : ''}`}
-                type="text"
-                maxLength={60}
-                placeholder="e.g. NVV Golden Classic"
-                value={form.building}
-                aria-invalid={shown('building') ? true : undefined}
-                aria-describedby={describedBy}
-                onChange={(e) => setValue('building', e.target.value)}
-                onBlur={() => handleBlur('building')}
-              />
-            )}
-          </Field>
-
-          {/* 5 — street level detail */}
+          {/* 3 — street level, one step wider than the building */}
           <Field
             id="locality"
-            label={FIELD_LABELS.locality}
-            required={!form.landmark.trim()}
+            label="Street / Road / Gali"
+            required
             error={shown('locality')}
             warning={warnFor('locality')}
-            hint="e.g. Gali no 5, Mittal Colony · 4th Cross Road"
           >
             {(describedBy) => (
               <input
@@ -413,7 +422,7 @@ export default function AddressForm({
                 type="text"
                 maxLength={60}
                 autoComplete="address-line2"
-                placeholder="Street, gali or colony"
+                placeholder="16th Main Road"
                 value={form.locality}
                 aria-invalid={shown('locality') ? true : undefined}
                 aria-describedby={describedBy}
@@ -423,16 +432,15 @@ export default function AddressForm({
             )}
           </Field>
 
-          {/* 6 — area: free-form text. Nothing is matched against the pincode
+          {/* 4 — area: free-form text. Nothing is matched against the pincode
               master: village and colony names it does not carry are common, and
               a spelling nag on a correct value is worse than no check. */}
           <Field
             id="area"
-            label={FIELD_LABELS.area}
+            label="Area / Village / Locality / Sector"
             required
             error={shown('area')}
             warning={warnFor('area')}
-            hint="Your area, colony or village name"
           >
             {(describedBy) => (
               <input
@@ -442,7 +450,7 @@ export default function AddressForm({
                 type="text"
                 maxLength={60}
                 autoComplete="address-level3"
-                placeholder="e.g. Madhurawada"
+                placeholder="e.g. HAL 2nd Stage, Sector 45"
                 value={form.area}
                 aria-invalid={shown('area') ? true : undefined}
                 aria-describedby={describedBy}
@@ -452,15 +460,67 @@ export default function AddressForm({
             )}
           </Field>
 
-          {/* 7 — landmark: mandatory only when there is no street to name */}
+          {/* 5 — pincode fills city and state; neither is ever typed */}
+          <div className="eq-row eq-row--pin">
+            <Field id="pincode" label="Pincode" required error={shown('pincode')}>
+              {(describedBy) => (
+                <input
+                  id="pincode"
+                  ref={setRef('pincode')}
+                  className={`eq-input eq-input--pin ${shown('pincode') ? 'eq-input--error' : ''}`}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="postal-code"
+                  maxLength={6}
+                  placeholder="560008"
+                  value={form.pincode}
+                  aria-invalid={shown('pincode') ? true : undefined}
+                  aria-describedby={describedBy}
+                  onChange={(e) => handlePincode(e.target.value)}
+                  onBlur={() => handleBlur('pincode')}
+                />
+              )}
+            </Field>
+
+            <Field id="city" label="City">
+              <input
+                id="city"
+                className="eq-input eq-input--ro"
+                type="text"
+                readOnly
+                tabIndex={-1}
+                value={pin.city}
+                placeholder={pin.status === 'loading' ? '…' : ''}
+              />
+            </Field>
+
+            <Field id="state" label="State">
+              <input
+                id="state"
+                className="eq-input eq-input--ro"
+                type="text"
+                readOnly
+                tabIndex={-1}
+                value={pin.state}
+                placeholder={pin.status === 'loading' ? '…' : ''}
+              />
+            </Field>
+          </div>
+
+          {/* The pincode lookup speaks under the row it belongs to. `not_found`
+              is already a blocking field error, so it is not repeated here. */}
+          <div className={`eq-pinres eq-pinres--${pin.status}`} aria-live="polite">
+            {pin.status === 'loading' && <span className="eq-skel" />}
+            {pin.status === 'error' && <span className="eq-pinres__bad">Couldn’t check right now</span>}
+          </div>
+
+          {/* 6 — landmark: mandatory only when there is no street to name */}
           <Field
             id="landmark"
-            label={FIELD_LABELS.landmark}
-            required={!form.locality.trim()}
-            optional={Boolean(form.locality.trim())}
+            label="Landmark"
+            optional
             error={shown('landmark')}
             warning={warnFor('landmark')}
-            hint="e.g. Near Mahathi School · Behind DRM office"
           >
             {(describedBy) => (
               <input
@@ -469,7 +529,7 @@ export default function AddressForm({
                 className={`eq-input ${shown('landmark') ? 'eq-input--error' : ''}`}
                 type="text"
                 maxLength={50}
-                placeholder="Nearby shop, temple, school or office"
+                placeholder="e.g. Opposite Reliance Fresh"
                 value={form.landmark}
                 aria-invalid={shown('landmark') ? true : undefined}
                 aria-describedby={describedBy}
@@ -479,38 +539,23 @@ export default function AddressForm({
             )}
           </Field>
 
-          {/* 8 — unchanged from the current screen */}
-          <Field id="ownership" label={FIELD_LABELS.ownership} required error={shown('ownership')}>
-            <div
-              className="eq-seg"
-              role="radiogroup"
-              aria-label="Property ownership"
-              ref={setRef('ownership')}
-              tabIndex={-1}
-            >
-              {[
-                ['SELF_OWNED', 'Self-Owned'],
-                ['RENTED', 'Rented'],
-              ].map(([val, text]) => (
-                <button
-                  type="button"
-                  key={val}
-                  role="radio"
-                  aria-checked={form.ownership === val}
-                  className={`eq-seg__btn ${form.ownership === val ? 'is-on' : ''}`}
-                  onClick={() => {
-                    setValue('ownership', val);
-                    setTouched((t) => ({ ...t, ownership: true }));
-                  }}
-                >
-                  {text}
-                </button>
-              ))}
-            </div>
+          {/* 7 — unchanged from the current screen */}
+          <Field id="ownership" label="Property ownership" required error={shown('ownership')}>
+            <Choice
+              name="ownership"
+              ariaLabel="Property ownership"
+              innerRef={setRef('ownership')}
+              value={form.ownership}
+              onPick={pick}
+              options={[
+                { val: 'SELF_OWNED', text: 'Self-owned' },
+                { val: 'RENTED', text: 'Rented' },
+              ]}
+            />
           </Field>
-
-          <AddressStrength score={score} blocked={blocked} blockedText={meterBlockedText} />
         </form>
+
+        <AddressStrength score={score} blocked={blocked} blockedText={meterBlockedText} />
       </div>
 
       {/* Blocking lives on the CTA — no top-of-page summary banner.

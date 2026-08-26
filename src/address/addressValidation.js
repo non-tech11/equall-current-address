@@ -195,19 +195,19 @@ export function validateField(name, form, ctx = {}) {
     }
 
     case 'locality': {
-      const hasLandmark = String(form.landmark || '').trim().length >= 5;
-      if (!v && !hasLandmark) return 'Enter street / gali / colony — or add a landmark instead';
-      if (v && v.length < 3) return 'Too short — add the street, gali or colony name';
+      if (!v) return 'Enter street / gali / colony';
+      if (v.length < 3) return 'Too short — add the street, gali or colony name';
       if (v && DIGITS_ONLY_RE.test(v) && !STREET_WORD_RE.test(v))
         return 'Enter a street or colony name, not only numbers';
       if (v.length > 60) return 'Keep this under 60 characters';
       return null;
     }
 
+    // Landmark is always optional: it strengthens the address (and earns a
+    // score point) but never blocks. Street / gali carries the requirement.
     case 'landmark': {
-      const hasLocality = String(form.locality || '').trim().length >= 3;
-      if (!v && !hasLocality) return 'Add a nearby landmark so we can find you';
-      if (v && v.length < 5) return 'Too short — mention a shop, temple, school or office';
+      if (!v) return null;
+      if (v.length < 5) return 'Too short — mention a shop, temple, school or office';
       if (v.length > 50) return 'Keep this under 50 characters';
       return null;
     }

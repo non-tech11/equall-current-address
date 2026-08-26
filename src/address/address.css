@@ -91,12 +91,23 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin: 2px 0 12px;
+  margin: 2px 0 6px;
 }
 
 .eq-title {
   margin: 0;
   font-size: 21px;
+  font-weight: 700;
+}
+
+.eq-subtitle {
+  margin: -6px 0 14px;
+  font-size: 13.5px;
+  color: var(--eq-ink-soft);
+}
+
+.eq-subtitle strong {
+  color: var(--eq-purple);
   font-weight: 700;
 }
 
@@ -175,8 +186,58 @@
 }
 
 .eq-optional {
-  font-weight: 400;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #eeeef4;
+  font-size: 11px;
+  font-weight: 600;
   color: var(--eq-ink-soft);
+  vertical-align: 1px;
+}
+
+/* ---- field rows ------------------------------------------------------- */
+/* Rows keep their own bottom margin; the fields inside give theirs up so a
+   long error message under one column cannot double the row gap. */
+.eq-row {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+  align-items: start;
+}
+
+.eq-row .eq-field {
+  margin-bottom: 0;
+}
+
+.eq-row--2 {
+  grid-template-columns: 0.85fr 1.15fr;
+}
+
+/* A label that wraps to two lines in a narrow column must not push its own
+   input below the neighbouring one. Subgrid shares the label / input / message
+   rows across both columns, so the inputs line up whatever the labels do. */
+.eq-row--2 {
+  grid-template-rows: auto auto auto;
+  /* the subgrid rows are spaced by the label / message margins, not the row gap */
+  row-gap: 0;
+}
+
+.eq-row--2 .eq-field {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 3;
+}
+
+/* Older engines: reserve the second label line instead. */
+@supports not (grid-template-rows: subgrid) {
+  .eq-row--2 .eq-label-text {
+    min-height: 2.9em;
+  }
+}
+
+.eq-row--pin {
+  grid-template-columns: 1.05fr 1fr 1fr;
 }
 
 .eq-input {
@@ -234,21 +295,26 @@
 }
 
 /* ---- pincode row ------------------------------------------------------ */
-.eq-pinrow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.eq-input--pin {
+  letter-spacing: 0.14em;
 }
 
-.eq-input--pin {
-  width: 132px;
-  flex: 0 0 132px;
-  letter-spacing: 0.16em;
+/* City and state are lookup output, never typed. */
+.eq-input--ro {
+  background: #fafafd;
+  color: var(--eq-ink-soft);
+  cursor: default;
 }
 
 .eq-pinres {
-  font-size: 13px;
-  min-height: 18px;
+  font-size: 12.5px;
+  min-height: 0;
+  margin: -8px 0 12px;
+}
+
+.eq-pinres--loading,
+.eq-pinres--error {
+  min-height: 16px;
 }
 
 .eq-pinres__ok {
@@ -275,35 +341,51 @@
   100% { background-position: 0 50%; }
 }
 
-/* ---- segmented control ------------------------------------------------ */
-.eq-seg {
+/* ---- two-button choice (home type, ownership) -------------------------- */
+.eq-choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.eq-choice__btn {
   display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 8px 10px;
   border: 1px solid var(--eq-line);
   border-radius: var(--eq-radius);
-  overflow: hidden;
-  background: #f4f4f8;
-}
-
-.eq-seg__btn {
-  flex: 1;
-  min-height: 44px;
-  border: 0;
-  background: none;
-  color: var(--eq-ink-soft);
+  background: #fff;
+  color: var(--eq-ink);
   font: inherit;
   font-size: 14px;
-  cursor: pointer;
-}
-
-.eq-seg__btn.is-on {
-  background: var(--eq-purple);
-  color: #fff;
   font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
 }
 
-.eq-seg__btn:focus-visible {
+.eq-choice__btn svg {
+  flex: 0 0 auto;
+  color: var(--eq-ink-soft);
+}
+
+.eq-choice__btn.is-on {
+  border-color: var(--eq-purple);
+  background: var(--eq-purple-soft);
+  color: var(--eq-purple);
+}
+
+.eq-choice__btn.is-on svg {
+  color: var(--eq-purple);
+}
+
+.eq-choice__btn:focus-visible {
   outline: 2px solid var(--eq-purple);
-  outline-offset: -2px;
+  outline-offset: 2px;
 }
 
 /* ---- area combobox ---------------------------------------------------- */
@@ -367,9 +449,7 @@
 
 /* ---- strength meter --------------------------------------------------- */
 .eq-strength {
-  border-top: 1px dashed var(--eq-line);
-  padding-top: 12px;
-  margin-top: 4px;
+  padding: 14px 4px 0;
 }
 
 .eq-strength__head {

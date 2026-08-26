@@ -284,11 +284,11 @@ locality  landmark   verdict
 | V-30 | building | B | required and <3 chars | "Enter the apartment or building name" |
 | V-31 | building | B | required and digits only | "Enter a name, not only numbers" |
 | V-32 | building | B | >60 chars | "Keep this under 60 characters" |
-| V-40 | locality | B | empty **and** landmark <5 | "Enter street / gali / colony — or add a landmark instead" |
+| V-40 | locality | B | empty | "Enter street / gali / colony" |
 | V-41 | locality | B | non-empty and <3 chars | "Too short — add the street, gali or colony name" |
 | V-42 | locality | B | digits only and no street word | "Enter a street or colony name, not only numbers" |
 | V-43 | locality | B | >60 chars | "Keep this under 60 characters" |
-| V-50 | landmark | B | empty **and** locality <3 | "Add a nearby landmark so we can find you" |
+| V-50 | landmark | — | (removed — landmark is optional and never blocks on being empty) | — |
 | V-51 | landmark | B | non-empty and <5 chars | "Too short — mention a shop, temple, school or office" |
 | V-52 | landmark | B | >50 chars | "Keep this under 50 characters" |
 | V-60 | homeType | B | unset | "Select your home type" |

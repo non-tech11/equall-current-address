@@ -198,7 +198,7 @@ Full list with rule IDs in [LOGIC.md §4](LOGIC.md). Headlines:
 
 - Blocking, form level: "Your address needs more detail — add street, area or a landmark"
 - Blocking, house no.: "Enter your house / flat / door number" · "This doesn't look like a real house number"
-- Blocking, locality/landmark pair: "Enter street / gali / colony — or add a landmark instead"
+- Blocking, locality: "Enter street / gali / colony" (landmark is optional and never blocks)
 - CTA hint when blocked: "Complete the fields marked in red to continue"
 - Strength meter when blocked: "Incomplete — complete the fields marked in red"
 - Confirm sheet: "Your card and all documents will be sent to this address."
