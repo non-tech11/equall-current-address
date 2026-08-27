@@ -33,7 +33,8 @@ the customer controls.
 
 ## 2. Requiredness matrix
 
-Requiredness is **dynamic**. Three fields change state based on other fields.
+Requiredness is **dynamic** for one field only: the apartment name. Locality and landmark used to
+form an exactly-one-of pair; they no longer do (see below).
 
 | Field | Required when | Optional when |
 |---|---|---|
@@ -41,23 +42,31 @@ Requiredness is **dynamic**. Three fields change state based on other fields.
 | Home type | always | — |
 | House number | always | — |
 | **Apartment name** | `homeType === 'FLAT'` **OR** `houseNo` matches `UNIT_TOKEN_RE` | otherwise |
-| **Locality** | `landmark` is empty (<5 chars) | `landmark` has ≥5 chars |
+| **Locality** | always | — |
 | **Area** | always | — |
-| **Landmark** | `locality` is empty (<3 chars) | `locality` has ≥3 chars |
+| **Landmark** | never | always |
 | Ownership | always | — |
 
-### Locality ⇄ Landmark: exactly-one-of
+### Locality and landmark: independent, not a pair
 
 ```
 locality present  landmark present   verdict
-     no                 no           BLOCK both (V-40, V-50)
-     yes                no           OK  — urban address, no landmark needed
-     no                 yes          OK  — village address, no street to name
+     no                 no           BLOCK on locality (V-40)
+     yes                no           OK  — landmark is never required
+     no                 yes          BLOCK on locality (V-40) — a landmark is not a street
      yes                yes          OK  — best case
 ```
 
-This pair is what makes short rural addresses pass. `5-136, Saluchintala` has no street name; it
-supplies a landmark instead and clears the gate.
+The old exactly-one-of pair is gone in both directions: landmark never blocks, and locality has no
+landmark escape. Street is the field verification leans on hardest, and product restored it as
+mandatory deliberately (8186500).
+
+Consequence to hold in view: a village address with no named street — `5-136, Saluchintala`,
+`9-208-1 / Bahadurpet` — used to clear the gate on its landmark alone and now blocks. The expected
+customer action is the ward, cross, survey or door identifier the courier actually reads, typed into
+the street field. This is the one place where the component-coverage principle is deliberately
+overridden by a per-field requirement, so V-40 is first on the day-one instrumentation list: watch
+`address_field_error` volume on V-40 by pincode and revisit if rural pincodes carry it.
 
 ### UNIT_TOKEN_RE — makes Apartment name mandatory
 
@@ -487,14 +496,22 @@ Evaluated top to bottom, first match wins. Mirrors the `signal` column of the an
 
 Drawn from real rows in the `1_complete` bucket, re-expressed as components. `✓` = submits.
 
+Both tables are executable: `node docs/verify-logic-tables.mjs` replays every row through
+`validateAddress` and exits non-zero if a verdict, score or blocking field disagrees with what is
+written here. Run it after any rule change — these tables silently drifted once already.
+
 ### Must pass (regressions the old length rules caused)
+
+T-01, T-02 and T-04 are the `1_complete` rows that carry **no street**. As sourced they now block on
+V-40 (see T-23a–T-23c below); the street column here shows the ward / road identifier the customer is
+expected to supply instead, which is the form the rows must pass in.
 
 | # | pincode | houseNo | building | locality | area | landmark | homeType | Score | Expect |
 |---|---|---|---|---|---|---|---|---|---|
-| T-01 | 517644 | `9-208-1` | — | — | `Bahadurpet` | `Near bus stop` | INDEPENDENT | 3 | ✓ |
-| T-02 | 518001 | `2-137 l` | — | — | `Pedda Pada Khana` | `Near panchayat office` | INDEPENDENT | 3 | ✓ |
+| T-01 | 517644 | `9-208-1` | — | `Ward 3` | `Bahadurpet` | `Near bus stop` | INDEPENDENT | 4 | ✓ |
+| T-02 | 518001 | `2-137 l` | — | `Panchayat road` | `Pedda Pada Khana` | `Near panchayat office` | INDEPENDENT | 4 | ✓ |
 | T-03 | 524126 | `222-54-678` | — | `Chakali veedhi` | `Naidupeta` | — | INDEPENDENT | 3 | ✓ |
-| T-04 | 531011 | `Flat no-409` | `Sai Residency` | — | `Atchuthapuram` | — | FLAT | 3 | ✓ |
+| T-04 | 531011 | `Flat no-409` | `Sai Residency` | `Main Road` | `Atchuthapuram` | — | FLAT | 4 | ✓ |
 | T-05 | 110085 | `B-5/246-247` | — | `Sec-3` | `Rohini` | — | INDEPENDENT | 3 | ✓ |
 | T-06 | 530041 | `Flat 501` | `NVV Golden Classic` | `Srinivasa Nagar Rd` | `Pothinamallayapalem` | `Near Mahathi School` | FLAT | 5 | ✓ |
 | T-07 | 110044 | `H.No 830` | — | `Gali No 4` | `Mithapur Extension` | — | INDEPENDENT | 3 | ✓ |
@@ -508,6 +525,9 @@ Drawn from real rows in the `1_complete` bucket, re-expressed as components. `�
 | T-21 | houseNo `New Ashok Nagar` | — | accepted (V-21 removed) |
 | T-22 | houseNo empty | V-20 | "Enter your house / flat / door number" |
 | T-23 | locality empty (landmark filled or not) | V-40 | "Enter street / gali / colony" |
+| T-23a | `9-208-1` / `Bahadurpet` / `Near bus stop`, street empty (T-01 as sourced) | V-40 | "Enter street / gali / colony" |
+| T-23b | `2-137 l` / `Pedda Pada Khana` / `Near panchayat office`, street empty (T-02 as sourced) | V-40 | "Enter street / gali / colony" |
+| T-23c | `Flat no-409` / `Sai Residency` / `Atchuthapuram`, street empty (T-04 as sourced) | V-40 | "Enter street / gali / colony" |
 | T-24 | area `Delhi`, state `DELHI` | V-12 | "Enter your area or village, not the state" |
 | T-25 | area `110025` | V-11 | "Enter a name, not only numbers" |
 | T-26 | homeType `FLAT`, building empty | V-30 | "Enter the apartment or building name" |

@@ -48,17 +48,18 @@ Free-text Address Line 1 / Line 2 are removed. Hierarchy runs narrow → wide.
 | 3 | **Home type** — Flat/Apartment · Independent house | Yes | — | Decides whether #5 is mandatory |
 | 4 | **Apartment / House / Floor number** | Yes | 40 | Non-empty; no digit requirement |
 | 5 | **Apartment name** | Conditional | 60 | Mandatory when home type = Flat, or house no. starts with a unit token (`Flat`, `F.No`, `TF-`, `S1`, `Block`, `Room`, `Door`) |
-| 6 | **Locality** (street, gali, colony) | Conditional | 60 | Mandatory unless a Landmark is given |
+| 6 | **Locality** (street, gali, colony) | Yes | 60 | Mandatory, with no landmark escape |
 | 7 | **Area / Village** | Yes | 60 | **Free-form text.** No matching against any list — village and colony names are too varied to gate on |
-| 8 | **Landmark** | Conditional | 50 | Mandatory when Locality is empty; otherwise optional and nudged |
+| 8 | **Landmark** | No | 50 | Always optional; nudged, never blocking |
 | 9 | **Property ownership** — Self-Owned · Rented | Yes | — | Unchanged from today |
 
 Why this beats validating free text:
 
 - **Area is its own field** ⇒ the city can no longer be typed where the area belongs; the value stays free-form so no village is ever a dead end.
 - **House number in its own field** ⇒ the digit rule is unambiguous; no regex guessing over prose.
-- **Locality *or* Landmark** ⇒ villages with no street name pass via landmark; city addresses with
-  no landmark pass via street. Nobody is blocked, no field is silently empty.
+- **Locality is mandatory, Landmark is not.** The old "either one" pair is gone: street is the field
+  verification leans on hardest, so a village address with no named street supplies its ward, cross
+  or survey identifier there rather than substituting a landmark.
 - **Duplicate detection is trivial** ⇒ compare fields to each other instead of parsing one blob.
 
 ---
@@ -80,7 +81,7 @@ locality 5, area 4, landmark 5 characters).
 Minimum score to submit = **3**. This threshold is not arbitrary — every legitimate address shape
 reaches it naturally:
 
-- Village: house no + area + landmark = 3
+- Village: house no + street/ward + area = 3
 - Independent urban house: house no + locality + area = 3
 - Flat: house no + apartment name + area (+ locality or landmark) = 4
 

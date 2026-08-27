@@ -68,3 +68,16 @@ Permanent-address variant:
    — no logic depends on it.
 3. **Tune the placeholder list.** `PLACEHOLDER_RE` in `addressValidation.js` currently covers the junk
    found in the analysis sheet's *complete* bucket; extend it once the failing buckets are reviewed.
+
+## Keeping the docs honest
+
+Two scripts replay the reference documents through the real validator, so a rule change cannot leave
+a table claiming the old behaviour:
+
+```bash
+node docs/verify-logic-tables.mjs   # asserts LOGIC.md §12 — exits non-zero on any mismatch
+node docs/generate-scenarios.mjs    # rewrites EXAMPLES_AND_SCENARIOS.md from the validator
+```
+
+Run both after touching `addressValidation.js`. `verify-logic-tables.mjs` exists because LOGIC.md §12
+drifted once: three must-pass rows with an empty street kept their ✓ after street was made mandatory.

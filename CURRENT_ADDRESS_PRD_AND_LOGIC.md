@@ -242,22 +242,26 @@ area and the human check on the confirm sheet. Not length. Not courier serviceab
 |---|---|---|
 | Pincode, Home type, House no., Area, Ownership | always | — |
 | **Apartment name** | `homeType === 'FLAT'` **or** `houseNo` matches `UNIT_TOKEN_RE` | otherwise |
-| **Locality** | `landmark` <5 chars | `landmark` ≥5 chars |
-| **Landmark** | `locality` <3 chars | `locality` ≥3 chars |
+| **Locality** | always | — |
+| **Landmark** | never | always |
 
 ```js
 UNIT_TOKEN_RE = /^(flat|f\.?\s?no|tf-?\d|gf|ff|sf|s-?\d|apt|apartment|unit|block|room|door)\b/i
 ```
 
-Locality ⇄ Landmark truth table:
+Locality and landmark are independent — the old exactly-one-of pair is gone in both directions:
 
 ```
 locality  landmark   verdict
-  no        no       BLOCK both (V-40, V-50)
-  yes       no       OK — urban address
-  no        yes      OK — village address, no street to name
+  no        no       BLOCK on locality (V-40)
+  yes       no       OK — landmark is never required
+  no        yes      BLOCK on locality (V-40) — a landmark is not a street
   yes       yes      OK — best case
 ```
+
+A village address with no named street puts its ward, cross or survey identifier in the street
+field. Product restored V-40 as mandatory deliberately (8186500); it is first on the day-one
+instrumentation list.
 
 ## B3. Rule catalogue
 
@@ -451,12 +455,16 @@ Landmark has no legacy home — send it as its own field or it is lost.
 
 ### Must pass
 
+The three rows that carry no street (T-01, T-02, T-04) show the ward / road identifier the customer
+is now expected to supply; as sourced they block on V-40. `node docs/verify-logic-tables.mjs` checks
+these tables against the validator.
+
 | # | pincode | houseNo | building | locality | area | landmark | Score |
 |---|---|---|---|---|---|---|:-:|
-| T-01 | 517644 | `9-208-1` | — | — | `Bahadurpet` | `Near bus stop` | 3 |
-| T-02 | 518001 | `2-137 l` | — | — | `Pedda Pada Khana` | `Near panchayat office` | 3 |
+| T-01 | 517644 | `9-208-1` | — | `Ward 3` | `Bahadurpet` | `Near bus stop` | 4 |
+| T-02 | 518001 | `2-137 l` | — | `Panchayat road` | `Pedda Pada Khana` | `Near panchayat office` | 4 |
 | T-03 | 524126 | `222-54-678` | — | `Chakali veedhi` | `Naidupeta` | — | 3 |
-| T-04 | 531011 | `Flat no-409` | `Sai Residency` | — | `Atchuthapuram` | — | 3 |
+| T-04 | 531011 | `Flat no-409` | `Sai Residency` | `Main Road` | `Atchuthapuram` | — | 4 |
 | T-05 | 110085 | `B-5/246-247` | — | `Sec-3 Rohini` | `Rohini` | — | 3 |
 | T-06 | 530041 | `Flat 501` | `NVV Golden Classic` | `Srinivasa Nagar Rd` | `Pothinamallayapalem` | `Near Mahathi School` | 5 |
 | T-07 | 110044 | `H.No 830` | — | `Gali No 4` | `Mithapur Extension` | — | 3 |
@@ -466,7 +474,7 @@ Landmark has no legacy home — send it as its own field or it is lost.
 | # | Input | Rule |
 |---|---|---|
 | T-20 | houseNo `0-0` | V-22 |
-| T-21 | houseNo `New Ashok Nagar` | V-21 |
+| T-21 | houseNo `New Ashok Nagar` | — (accepted; V-21 removed) |
 | T-22 | houseNo empty (all else filled) | V-20 + S-01 on the meter |
 | T-23 | locality empty + landmark empty | V-40 + V-50 |
 | T-24 | area `Delhi` with state `DELHI` | V-12 |
