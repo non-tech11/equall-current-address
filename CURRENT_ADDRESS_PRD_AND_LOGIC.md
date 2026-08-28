@@ -246,7 +246,7 @@ area and the human check on the confirm sheet. Not length. Not courier serviceab
 | **Landmark** | never | always |
 
 ```js
-UNIT_TOKEN_RE = /^(flat|f\.?\s?no|tf-?\d|gf|ff|sf|s-?\d|apt|apartment|unit|block|room|door)\b/i
+UNIT_TOKEN_RE = /^(?:flat\d|(?:flat|f\.?\s?no|tf-?\d|gf|ff|sf|s-?\d|apt|apartment|unit|block|room|door)\b)/i
 ```
 
 Locality and landmark are independent — the old exactly-one-of pair is gone in both directions:

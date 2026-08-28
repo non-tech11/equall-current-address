@@ -71,11 +71,16 @@ overridden by a per-field requirement, so V-40 is first on the day-one instrumen
 ### UNIT_TOKEN_RE — makes Apartment name mandatory
 
 ```js
-/^(flat|f\.?\s?no|tf-?\d|gf|ff|sf|s-?\d|apt|apartment|unit|block|room|door)\b/i
+/^(?:flat\d|(?:flat|f\.?\s?no|tf-?\d|gf|ff|sf|s-?\d|apt|apartment|unit|block|room|door)\b)/i
 ```
 
 Rationale from production data: `Flat no 102` / `M s ramayya` and `S1 Jayanthi embearled` prove that
 when a customer starts with a unit token, the building identity is the missing piece.
+
+`flat` followed directly by a digit is a separate branch with no `\b` after it, because `FLAT501` is
+how customers actually type it and the boundary never fires between `t` and `5` — the apartment name
+stayed optional on a flat. The `\b` remains on every other token, which is what keeps `Flatmate lane`
+and `Doorvani nagar` out. See T-27a in §12.
 
 ---
 
@@ -532,6 +537,7 @@ expected to supply instead, which is the form the rows must pass in.
 | T-25 | area `110025` | V-11 | "Enter a name, not only numbers" |
 | T-26 | homeType `FLAT`, building empty | V-30 | "Enter the apartment or building name" |
 | T-27 | houseNo `Flat 501`, homeType `INDEPENDENT`, building empty | V-30 via UNIT_TOKEN_RE | "Enter the apartment or building name" |
+| T-27a | houseNo `FLAT501` (no separator), homeType `INDEPENDENT`, building empty | V-30 via UNIT_TOKEN_RE | "Enter the apartment or building name" |
 | T-28 | houseNo `530041 Flat 2` | V-23 | "Remove the pincode from this field" |
 | T-29 | pincode `53004` | V-02 | "Enter a valid 6-digit pincode" |
 | T-30 | pincode `999999` (master says no) | V-03 | "We couldn't find this pincode — please check" |

@@ -78,7 +78,11 @@ export const normalizePunctuation = (s = '') =>
 const PIN_RE = /^[1-9]\d{5}$/;
 const PIN_IN_TEXT_RE = /\b[1-9]\d{5}\b/;
 const DIGITS_ONLY_RE = /^[\d\W_]+$/;
-const UNIT_TOKEN_RE = /^(flat|f\.?\s?no|tf-?\d|gf|ff|sf|s-?\d|apt|apartment|unit|block|room|door)\b/i;
+// `flat` followed straight by a digit is its own branch: `FLAT501` carries no
+// separator, so the trailing \b never fires on it and the apartment name was
+// left optional on a flat. Every other token keeps the \b that stops
+// `Flatmate lane` and `Doorvani nagar` from reading as unit numbers.
+const UNIT_TOKEN_RE = /^(?:flat\d|(?:flat|f\.?\s?no|tf-?\d|gf|ff|sf|s-?\d|apt|apartment|unit|block|room|door)\b)/i;
 const STREET_WORD_RE = /\b(gali|galli|street|st|road|rd|lane|marg|sector|block|cross|colony|nagar|puram|pet|peta|veedhi|vidhi|chowk|bazar|phase|pocket)\b/i;
 
 /** Placeholder house numbers seen in production data: "0-0", "NA", "XX". */

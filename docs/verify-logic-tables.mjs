@@ -44,6 +44,8 @@ const MUST_BLOCK = [
   ['T-25', form({ houseNo: 'H.No 830', locality: 'Gali No 4', area: '110025' }), at('South Delhi', 'Delhi'), 'area'],
   ['T-26', form({ homeType: 'FLAT', houseNo: 'Flat 501', locality: 'Main Road', area: 'Madhurawada' }), AP, 'building'],
   ['T-27', form({ homeType: 'INDEPENDENT', houseNo: 'Flat no-409', locality: 'Main Road', area: 'Atchuthapuram' }), AP, 'building'],
+  // No separator between token and number — the case the trailing \b used to miss.
+  ['T-27a', form({ homeType: 'INDEPENDENT', houseNo: 'FLAT501', locality: 'Main Road', area: 'Madhurawada' }), AP, 'building'],
   ['T-28', form({ houseNo: '530041 Flat 2', locality: 'Main Road', area: 'Madhurawada' }), AP, 'houseNo'],
   ['T-31', form({ houseNo: '303', locality: 'Main', area: 'CVR', landmark: 'Near park' }), AP, '_form'],
   ['T-32', form({ houseNo: '9-208-1', area: 'Bahadurpet', landmark: 'Near' }), AP, 'landmark'],
