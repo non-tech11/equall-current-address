@@ -649,3 +649,106 @@
     width: 100%;
   }
 }
+
+/* ---- v2: Google Places search ---------------------------------------- */
+.eq-psearch {
+  position: relative;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed var(--eq-line);
+}
+
+.eq-psearch__box {
+  position: relative;
+}
+
+.eq-psearch__icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  color: var(--eq-ink-soft);
+  pointer-events: none;
+}
+
+.eq-psearch__input {
+  padding-left: 38px;
+  padding-right: 38px;
+}
+
+.eq-psearch__spin {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin-top: -8px;
+  border: 2px solid var(--eq-purple-soft);
+  border-top-color: var(--eq-purple);
+  border-radius: 50%;
+  animation: eq-spin 0.7s linear infinite;
+}
+
+@keyframes eq-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.eq-psearch__list {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  margin: 4px 0 0;
+  padding: 4px 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid var(--eq-line);
+  border-radius: var(--eq-radius);
+  box-shadow: 0 8px 24px rgba(22, 22, 29, 0.12);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.eq-psearch__opt {
+  display: flex;
+  flex-direction: column;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+
+.eq-psearch__opt.is-active,
+.eq-psearch__opt:hover {
+  background: var(--eq-purple-soft);
+}
+
+.eq-psearch__main {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.eq-psearch__sec {
+  font-size: 12.5px;
+  color: var(--eq-ink-soft);
+}
+
+.eq-psearch__empty {
+  padding: 9px 12px;
+  color: var(--eq-ink-soft);
+  font-size: 13px;
+}
+
+.eq-psearch__attr {
+  padding: 6px 12px 2px;
+  text-align: right;
+  font-size: 11px;
+  color: #a5a5b6;
+}
+
+.eq-psearch__off {
+  margin: 0 0 14px;
+  font-size: 12.5px;
+  color: var(--eq-ink-soft);
+}

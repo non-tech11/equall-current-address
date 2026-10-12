@@ -138,12 +138,15 @@ export default function AddressForm({
   onSubmit,
   onEvent = () => {},
   submitting = false,
+  renderSearch,
 }) {
   const [form, setForm] = useState({ ...EMPTY, ...initialValue });
   const [touched, setTouched] = useState({});
   const [attempted, setAttempted] = useState(false);
   const [pin, setPin] = useState({ status: 'idle', city: '', state: '' });
   const [confirming, setConfirming] = useState(false);
+  // v2 only: the Google place the customer picked, kept for the payload
+  const [place, setPlace] = useState(null);
 
   const refs = useRef({});
   const setRef = (name) => (el) => {
@@ -207,6 +210,18 @@ export default function AddressForm({
     setTouched((t) => ({ ...t, [name]: true }));
   }, []);
 
+  /** v2 search pick: merge what Google knew, then send the customer to the flat no. */
+  const applyPlace = useCallback(({ components, place: picked }) => {
+    setForm((f) => ({ ...f, ...components }));
+    setTouched((t) => ({ ...t, ...Object.fromEntries(Object.keys(components).map((k) => [k, true])) }));
+    setPlace({ ...picked, prefilled: Object.keys(components) });
+    requestAnimationFrame(() => {
+      const target = refs.current[components.houseNo ? 'homeType' : 'houseNo'];
+      target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target?.focus?.({ preventScroll: true });
+    });
+  }, []);
+
   const handlePincode = (raw) => {
     const digits = raw.replace(/\D/g, '').slice(0, 6);
     // Area is no longer derived from the pincode, so it survives a pincode
@@ -249,6 +264,7 @@ export default function AddressForm({
 
   const handleConfirm = () => {
     const payload = toPayload(form, ctx);
+    if (place) payload.meta.place = place;
     onEvent('address_submitted', payload.meta);
     setConfirming(false);
     onSubmit?.(payload);
@@ -334,6 +350,8 @@ export default function AddressForm({
             handleContinue();
           }}
         >
+          {renderSearch?.({ onSelect: applyPlace, onEvent })}
+
           {/* 1 — home type sits first: it renames the number fields below and
               decides whether the apartment name is mandatory */}
           <Field id="homeType" label="" error={shown('homeType')}>

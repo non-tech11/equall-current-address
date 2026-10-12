@@ -15,6 +15,28 @@ npm run dev          # http://localhost:5199
 
 Submitted payload and every analytics event print to the console.
 
+## v2 — Google Places search
+
+`/current_address_v2` (dev: http://localhost:5199/v2.html) is the same screen with a
+"Search your address" box on top. Picking a result **prefills** pincode, building, street and area;
+the flat / house number is never taken from Google, and every value still runs through the same
+validation. The payload gains `meta.place` (`placeId`, `formattedAddress`, `lat`, `lng`, `prefilled`).
+
+```bash
+cp .env.example .env.local   # then set VITE_GOOGLE_MAPS_API_KEY
+```
+
+The key's GCP project needs **Maps JavaScript API** and **Places API (New)** enabled; restrict the
+key by HTTP referrer. For the deploy, add the same variable in Vercel. Without a key the search box
+hides itself and the manual form works as v1.
+
+```jsx
+<AddressForm
+  renderSearch={(props) => <PlaceSearch apiKey={key} {...props} />}
+  ...
+/>
+```
+
 ## Use it
 
 ```jsx
@@ -56,6 +78,8 @@ Permanent-address variant:
 | `AddressStrength.jsx` | Coverage meter (replaces the character-count rule) |
 | `ConfirmAddressSheet.jsx` | Delivery-label preview before submit |
 | `pincodeService.js` | Pincode → city / state, with cache |
+| `PlaceSearch.jsx` | v2: Places search combobox |
+| `placesService.js` | v2: Maps JS loader, suggestions, Google components → form keys |
 | `address.css` | Scoped styles, all under `.eq-*` |
 
 ## Before production
